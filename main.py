@@ -45,6 +45,9 @@ class bank:
         self.deposits = {}
     
     def interest(self, agent_list:list[agent],):
+        '''
+        interest rate payment anually
+        '''
         for a in agent_list:
             self.deposits[a.id] *= (1 + self.rate)
     
