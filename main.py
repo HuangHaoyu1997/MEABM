@@ -36,9 +36,9 @@ class agent:
 
 class bank:
     def __init__(self, rn:float, pi_t:float, un:float, alpha_pi:float, alpha_u:float):
-        self.rn = rn        # natural interest rate
-        self.pi_t = pi_t    # target inflation rate
-        self.un = un        # natural unemployment rate
+        self.rn = rn        # natural interest rate, constant value
+        self.pi_t = pi_t    # target inflation rate, constant value
+        self.un = un        # natural unemployment rate, constant value
         self.rate = rn      # set initial interest rate to natural rate
         self.alpha_pi = alpha_pi
         self.alpha_u = alpha_u
@@ -52,6 +52,9 @@ class bank:
             self.deposits[a.id] *= (1 + self.rate)
     
     def deposit(self, agent_id, income:float):
+        '''
+        update the deposit of the agent with agent_id
+        '''
         # print('before:', agent_id, self.deposits[agent_id])
         if agent_id in self.deposits:
             self.deposits[agent_id] += income
@@ -60,7 +63,13 @@ class bank:
         # print('after:', agent_id, self.deposits[agent_id])
     
     def rate_adjustment(self, unemployment_rate:float, inflation_rate:float):
-        self.rate = max(self.rn + self.pi_t + self.alpha_pi * (inflation_rate - self.pi_t) + self.alpha_u * (self.un - unemployment_rate), 0)
+        '''
+        Taylor rule for interest rate adjustment
+        
+        '''
+        rate_after = max(self.rn + self.pi_t + self.alpha_pi * (inflation_rate - self.pi_t) + self.alpha_u * (self.un - unemployment_rate), 0)
+        self.rate = rate_after
+        return rate_after
 
 class firm:
     def __init__(self, A:float, alpha_w:float, alpha_p:float):
@@ -71,17 +80,20 @@ class firm:
         self.alpha_p = alpha_p # price adjustment parameter
 
     def produce(self, agent_list:list[agent],):
-        production = sum([168 * self.A for a in agent_list if a.l])
+        '''
+        production of essential goods
+        '''
+        production = sum([168 * self.A for a in agent_list if a.l==1])
         # for a in agent_list:
         #     if a.l == 1: production += 168 * self.A
         self.G += production
         return production
     
-    def pay_wage(self, agent_list:list[agent],):
+    def pay_wage(self, agent_list:list[agent]):
         wages = []
         for a in agent_list:
             if a.l:
-                a.z = a.w * 168 # monthly income
+                a.z = a.w * 168   # monthly income
                 wages.append(a.z)
         return wages
     
