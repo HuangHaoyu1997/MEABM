@@ -2,6 +2,7 @@ import numpy as np
 import random
 from utils import beta_dist
 from copy import deepcopy
+from config import Configuration
 
 class agent:
     def __init__(self, id:int, pw:float, pc:float, gamma:float, beta:float):
@@ -10,7 +11,7 @@ class agent:
         self.w = 0           # hourly wage
         self.z = 0           # monthly income
         self.pc = pc         # proportion of consumption
-        self.l = None        # work state (0: unemployed, 1: employed)
+        self.l = 0           # work state (0: unemployed, 1: employed)
         self.gamma = gamma
         self.beta = beta
         
@@ -167,49 +168,50 @@ class market:
         phi_bar = (D - G) / max(D, G)
         return phi_bar
 
-def main():
-    random.seed(13)
-    np.random.seed(13)
-    N = 100
-    T = 12*50 # 20 years
+def main(config:Configuration):
     
     M = market()
-    F = firm(A=1, alpha_w=0.05, alpha_p=0.1)
-    B = bank(rn=0.01, pi_t=0.02, un=0.04, alpha_pi=0.5, alpha_u=0.5)
-    agents = [agent(id=i, pw=np.random.uniform(0.3, 0.7), pc=np.random.uniform(0.1, 0.15), gamma=0.5, beta=0.5) for i in range(N)]
+    F = firm(A=config.A, alpha_w=config.alpha_w, alpha_p=config.alpha_p)
+    B = bank(rn=config.rn, pi_t=config.pi_t, un=config.un, alpha_pi=config.alpha_pi, alpha_u=config.alpha_u)
+    
+    agents = [agent(id=i, 
+                    pw=np.random.uniform(0.3, 0.7), 
+                    pc=np.random.uniform(0.05, 0.1), 
+                    gamma=config.gamma, 
+                    beta=config.gamma) for i in range(config.num_agents)]
 
     for a in agents:
-        a.w = beta_dist()
-        B.deposits[a.id] = 0.
+        a.w = beta_dist()      # initial hourly wage
+        B.deposits[a.id] = 0.  # initial deposit
+    F.P = np.mean([a.w for a in agents]) # t=0 initial price
     
-    
+    log = {}
+    log[0] = {'work_state': [a.l for a in agents], 'price': F.P, 'rate': B.rate, 'production': 0}
     
     work_state_history = []
-    price_history = []
     rate_history = []
-    F.P = np.mean([a.w for a in agents]) # t=0 initial price
+    
     price_history.append(F.P)
     
-    for t in range(1, T+1):
+    for t in range(1, config.num_time_steps+1):
         
         work_state = [a.work_decision() for a in agents] # work decision
-        work_state_history.append(work_state) # record work state
-        rate_history.append(B.rate) # record interest rate
         production = F.produce(agents) # production
+        log[t] = {'work_state': work_state, 'rate': B.rate, 'price': F.P, 'production': production}
         # print(t, production, work_state.count(1))
         wages = F.pay_wage(agents)
         taxes = M.taxation(wages)
         wages_after_tax = [w - t for w, t in zip(wages, taxes)]
         for a, w in zip(agents, wages_after_tax):
             a.z = w # update monthly income
-            # print(t, a.id, w, sum(taxes), w + sum(taxes)/N)
-            B.deposit(a.id, w + sum(taxes)/N) # redistribution
+            # print(t, a.id, w, sum(taxes), w + sum(taxes)/config.num_agents)
+            B.deposit(a.id, w + sum(taxes)/config.num_agents) # redistribution
         
         
         ######################
         # random consumption #
         ######################
-        random_list = np.arange(N)
+        random_list = np.arange(config.num_agents)
         np.random.shuffle(random_list)
         tmp_G = deepcopy(F.G)
         for idx in random_list: 
@@ -234,7 +236,7 @@ def main():
         F.price_adjustment(phi_bar)
         
         F.G = tmp_G
-        print(t, tmp_G)
+        # print(t, tmp_G)
         price_history.append(F.P)
         
         #####################
@@ -249,7 +251,13 @@ def main():
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    price_history, rate_history = main()
+    from config import Configuration
+    
+    config = Configuration()
+    random.seed(config.seed)
+    np.random.seed(config.seed)
+    
+    price_history, rate_history = main(config)
     
     plt.subplot(121)
     plt.plot(price_history)
