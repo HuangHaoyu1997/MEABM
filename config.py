@@ -1,6 +1,6 @@
 class Configuration:
     seed = 123
-    num_agents = 200
+    num_agents = 100
     num_time_steps = 12 * 20
     
     A = 1.0

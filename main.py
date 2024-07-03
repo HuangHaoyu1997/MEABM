@@ -1,6 +1,6 @@
 import numpy as np
 import random
-from utils import beta_dist
+from utils import beta_dist, pay_wage
 from copy import deepcopy
 from config import Configuration
 
@@ -90,13 +90,7 @@ class firm:
         self.G += production
         return production
     
-    def pay_wage(self, agent_list:list[agent]):
-        wages = []
-        for a in agent_list:
-            if a.l:
-                a.z = a.w * 168   # monthly income
-                wages.append(a.z)
-        return wages
+    
     
     def wage_adjustment(self, agent_list:list[agent], imbalance:float):
         '''
@@ -188,19 +182,17 @@ def main(config:Configuration):
     log = {}
     log[0] = {'work_state': [a.l for a in agents], 'price': F.P, 'rate': B.rate, 'production': 0}
     
-    work_state_history = []
-    rate_history = []
-    
-    price_history.append(F.P)
-    
     for t in range(1, config.num_time_steps+1):
         
         work_state = [a.work_decision() for a in agents] # work decision
         production = F.produce(agents) # production
-        log[t] = {'work_state': work_state, 'rate': B.rate, 'price': F.P, 'production': production}
+        
+        
+        
         # print(t, production, work_state.count(1))
-        wages = F.pay_wage(agents)
+        wages = pay_wage(agents)
         taxes = M.taxation(wages)
+        # print(wages[:10], taxes[:10], '\n\n')
         wages_after_tax = [w - t for w, t in zip(wages, taxes)]
         for a, w in zip(agents, wages_after_tax):
             a.z = w # update monthly income
@@ -237,17 +229,18 @@ def main(config:Configuration):
         
         F.G = tmp_G
         # print(t, tmp_G)
-        price_history.append(F.P)
         
         #####################
         # annual operation  #
         #####################
         if t % 12 == 0:
             B.interest(agents) # interest payment
-            unem_rate = M.unemployment(work_state_history)
-            infla_rate = M.inflation(price_history)
+            unem_rate = M.unemployment(log)
+            infla_rate = M.inflation(log)
             B.rate_adjustment(unem_rate, infla_rate) 
-    return price_history, rate_history
+        log[t] = {'work_state': work_state, 'price': F.P, 'rate': B.rate, 'production': production}
+        
+    return log
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
@@ -257,22 +250,23 @@ if __name__ == '__main__':
     random.seed(config.seed)
     np.random.seed(config.seed)
     
-    price_history, rate_history = main(config)
+    # Market = market()
+    # taxes = Market.taxation([4500, 21000, 57000, 115000, 180000, 300000, 700000])
+    # print(taxes)
     
-    plt.subplot(121)
-    plt.plot(price_history)
-    plt.xlabel('Time/Month')
-    plt.ylabel('Price')
+    log = main(config)
     
+    # plt.subplot(121)
+    # plt.plot(price_history)
+    # plt.xlabel('Time/Month'); plt.ylabel('Price')
     
-    plt.subplot(122)
-    plt.plot(rate_history)
-    plt.xlabel('Time/Month')
-    plt.ylabel('Interest rate')
+    # plt.subplot(122)
+    # plt.plot(rate_history)
+    # plt.xlabel('Time/Month'); plt.ylabel('Interest rate')
 
     
     # plt.title('Price history')
-    plt.savefig('price_history.png')
+    # plt.savefig('price_history.png')
     # plt.show()
     
     
