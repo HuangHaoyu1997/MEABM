@@ -111,7 +111,7 @@ class market:
     def __init__(self, ) -> None:
         pass
         
-    def inflation(self, log:dict):
+    def inflation(self, log:dict[dict]):
         '''
         通胀率 = 本年均价 - 上年均价 / 上年均价
         '''
@@ -129,8 +129,6 @@ class market:
         for state in tmp_states:
             unemployment_cnt += state.count(0)
         return unemployment_cnt / (12 * len(state))
-    
-
     
     def total_intended_demand(self, agent_list:list[agent], P:float, deposits:dict) -> float:
         '''
@@ -150,15 +148,15 @@ class market:
         phi_bar = (D - G) / max(D, G)
         return phi_bar
 
-def main(config:Configuration):
+def simulation(config:Configuration):
     
     M = market()
     F = firm(A=config.A, alpha_w=config.alpha_w, alpha_p=config.alpha_p)
     B = bank(rn=config.rn, pi_t=config.pi_t, un=config.un, alpha_pi=config.alpha_pi, alpha_u=config.alpha_u)
     
     agents = [agent(id=i, 
-                    pw=np.random.uniform(0.6, 0.95), 
-                    pc=np.random.uniform(0.05, 0.1), 
+                    pw=np.random.uniform(config.pw_low, config.pw_high), 
+                    pc=np.random.uniform(config.pc_low, config.pc_high), 
                     gamma=config.gamma, 
                     beta=config.gamma) for i in range(config.num_agents)]
 
@@ -171,6 +169,7 @@ def main(config:Configuration):
     log = {}
     log[0] = {
         'work_state': [a.l for a in agents], 
+        'wage': [a.w for a in agents],
         'price': F.P, 
         'rate': B.rate, 
         'production': 0,
@@ -180,6 +179,7 @@ def main(config:Configuration):
         'unemployment_rate': unem_rate,
         'deposit': {i: 0.0 for i in range(config.num_agents)},
         'avg_wage': sum([a.w for a in agents])/config.num_agents,
+        
         }
     
     for t in range(1, config.num_time_steps+1):
@@ -241,6 +241,7 @@ def main(config:Configuration):
         
         log[t] = {
             'work_state': work_state, 
+            'wage': [a.w for a in agents],
             'price': F.P, 
             'rate': B.rate, 
             'production': production,
@@ -250,16 +251,27 @@ def main(config:Configuration):
             'unemployment_rate': unem_rate,
             'deposit': deepcopy(B.deposits),
             'avg_wage': sum([a.w for a in agents])/config.num_agents,
+            
             }
         
         if t % 6 == 0 and t > 60:
             for a in agents:
-                last_period_deposit = sum([log[tt]['deposit'][a.id] for tt in range(t-12+1, t-6+1)])
-                this_period_deposit = sum([log[tt]['deposit'][a.id] for tt in range(t-6+1, t+1)])
+                last_period_deposit = sum([log[tt]['deposit'][a.id]*(1+log[tt]['rate']) for tt in range(t-12+1, t-6+1)])
+                this_period_deposit = sum([log[tt]['deposit'][a.id]*(1+log[tt]['rate']) for tt in range(t-6+1, t+1)])
                 sgn_deposit = -1 if this_period_deposit >= last_period_deposit else 1
                 
+                last_period_wage = sum([log[tt]['wage'][a.id] for tt in range(t-12+1, t-6+1)])
+                this_period_wage = sum([log[tt]['wage'][a.id] for tt in range(t-6+1, t+1)])
+                sgn_wage = 1 if this_period_wage >= last_period_wage else -1
+                
+                last_period_price = sum([log[tt]['price'] for tt in range(t-12+1, t-6+1)])
+                this_period_price = sum([log[tt]['price'] for tt in range(t-6+1, t+1)])
+                sgn_price = 1 if this_period_price >= last_period_price else -1
                 
                 a.pw += sgn_deposit * np.random.uniform() * 0.3
+                a.pw += sgn_wage * np.random.uniform() * 0.3
+                a.pc += sgn_price * np.random.uniform() * 0.002
+                a.pc += sgn_deposit * np.random.uniform() * 0.002
 
     return log
 
@@ -271,14 +283,10 @@ if __name__ == '__main__':
     random.seed(config.seed)
     np.random.seed(config.seed)
     
-    # Market = market()
-    # taxes = taxation([4500, 21000, 57000, 115000, 180000, 300000, 700000])
-    # print(taxes)
-    
     def total_deposit(deposits:dict):
         return sum([deposits[id] for id in deposits.keys()])
     
-    log = main(config)
+    log = simulation(config)
     # print(log[2])
     price_history = [log[key]['price'] for key in log.keys()]
     rate_history = [log[key]['rate'] for key in log.keys()]

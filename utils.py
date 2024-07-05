@@ -42,3 +42,8 @@ def taxation(wages:list[float]):
             tax += (w - brackets[-1]) * rates[-1]
         taxes.append(tax)
     return taxes
+
+if __name__ == '__main__':
+    # taxes = taxation([4500, 21000, 57000, 115000, 180000, 300000, 700000])
+    # print(taxes)
+    pass

@@ -2,7 +2,7 @@ from time import time
 class Configuration:
     seed = int(time()) # 123
     num_agents = 100
-    num_time_steps = 12 * 50
+    num_time_steps = 12 * 150
     
     A = 1.0
     alpha_w = 0.05
@@ -12,7 +12,12 @@ class Configuration:
     pi_t = 0.1 # 0.02
     un = 0.2 # 0.04
     alpha_pi = 0.5
-    alpha_u = 0.5
+    alpha_u = 1 - alpha_pi
     
     gamma = 0.5
     beta = 0.5
+    
+    pw_low = 0.60
+    pw_high = 0.95
+    pc_low = 0.05
+    pc_high = 0.10
