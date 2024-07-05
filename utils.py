@@ -43,6 +43,28 @@ def taxation(wages:list[float]):
         taxes.append(tax)
     return taxes
 
+def total_deposit(deposits:dict):
+    return sum([deposits[id] for id in deposits.keys()])
+
+def inflation(log:dict[dict]):
+    '''
+    通胀率 = 本年均价 - 上年均价 / 上年均价
+    '''
+    price_history = [log[key]['price'] for key in log.keys()]
+    assert len(price_history) >= 12
+    if len(price_history) < 12*2:
+        return (np.mean(price_history[-12:]) - np.mean(price_history[0:-12])) / np.mean(price_history[0:-12])
+    else:
+        return (np.mean(price_history[-12:]) - np.mean(price_history[-12*2:-12])) / np.mean(price_history[-12*2:-12])
+
+def GDP(log:dict):
+    '''
+    名义GDP = 总产量 * 价格
+    计算最近一年的名义GDP
+    '''
+    assert len(log) >= 12
+    return sum([log[key]['production'] * log[key]['price'] for key in list(log.keys())[-12:]])
+
 if __name__ == '__main__':
     # taxes = taxation([4500, 21000, 57000, 115000, 180000, 300000, 700000])
     # print(taxes)

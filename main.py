@@ -1,6 +1,6 @@
 import numpy as np
 import random
-from utils import beta_dist, pay_wage, taxation
+from utils import beta_dist, pay_wage, taxation, total_deposit, inflation, GDP
 from copy import deepcopy
 from config import Configuration
 
@@ -109,16 +109,6 @@ class market:
     def __init__(self, ) -> None:
         pass
         
-    def inflation(self, log:dict[dict]):
-        '''
-        通胀率 = 本年均价 - 上年均价 / 上年均价
-        '''
-        price_history = [log[key]['price'] for key in log.keys()]
-        assert len(price_history) >= 12
-        if len(price_history) < 12*2:
-            return (np.mean(price_history[-12:]) - price_history[-12]) / price_history[-12]
-        else:
-            return (np.mean(price_history[-12:]) - np.mean(price_history[-12*2:-12])) /  np.mean(price_history[-12*2:-12])
     
     def unemployment(self, log:dict):
         work_state_history = [log[key]['work_state'] for key in log.keys()]
@@ -146,15 +136,11 @@ class market:
         phi_bar = (D - G) / max(D, G)
         return phi_bar
     
-    def GDP(self, log:dict):
-        '''
-        名义GDP = 总产量 * 价格
-        计算最近一年的名义GDP
-        '''
-        assert len(log) >= 12
-        return sum([log[key]['production'] * log[key]['price'] for key in list(log.keys())[-12:]])
+    
 
 def simulation(config:Configuration):
+    random.seed(config.seed)
+    np.random.seed(config.seed)
     
     M = market()
     F = firm(A=config.A, alpha_w=config.alpha_w, alpha_p=config.alpha_p)
@@ -242,9 +228,9 @@ def simulation(config:Configuration):
         if t % 12 == 0:
             B.interest(agents) # interest payment
             unem_rate = M.unemployment(log)
-            infla_rate = M.inflation(log)
+            infla_rate = inflation(log)
             B.rate_adjustment(unem_rate, infla_rate) 
-            Nominal_GDP = M.GDP(log)
+            Nominal_GDP = GDP(log)
         
         
         log[t] = {
@@ -289,11 +275,6 @@ if __name__ == '__main__':
     from config import Configuration
     
     config = Configuration()
-    random.seed(config.seed)
-    np.random.seed(config.seed)
-    
-    def total_deposit(deposits:dict):
-        return sum([deposits[id] for id in deposits.keys()])
     
     log = simulation(config)
     # print(log[2])
