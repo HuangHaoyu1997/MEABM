@@ -40,7 +40,7 @@ class bank:
         self.rn = rn        # natural interest rate, constant value
         self.pi_t = pi_t    # target inflation rate, constant value
         self.un = un        # natural unemployment rate, constant value
-        self.rate = rn      # set initial interest rate to natural rate
+        self.rate = rn      # initial interest rate = natural rate
         self.alpha_pi = alpha_pi
         self.alpha_u = alpha_u
         self.deposits = {}
@@ -293,7 +293,7 @@ if __name__ == '__main__':
     imba_history = [log[key]['imbalance'] for key in log.keys()]
     taxes_history = [log[key]['taxes']/config.num_agents for key in log.keys()]
     
-    fig, axs = plt.subplots(3, 3, figsize=(16, 16))
+    fig, axs = plt.subplots(3, 4, figsize=(24, 16))
     fig.suptitle('xxx')
     
     axs[0, 0].plot(price_history)
@@ -307,6 +307,10 @@ if __name__ == '__main__':
     axs[0, 2].plot([log[key]['unemployment_rate'] for key in log.keys()])
     axs[0, 2].set_xlabel('Time / Month'); axs[0, 2].set_ylabel('Unemployment rate')
     axs[0, 2].grid()
+    
+    axs[0, 3].plot([log[key]['production']*log[key]['price'] for key in log.keys()])
+    axs[0, 3].set_xlabel('Time / Month'); axs[0, 3].set_ylabel('Nominal GDP')
+    axs[0, 3].grid()
     
 
     axs[1, 0].plot(imba_history)
