@@ -90,8 +90,6 @@ class firm:
         self.G += production
         return production
     
-    
-    
     def wage_adjustment(self, agent_list:list[agent], imbalance:float):
         '''
         调整工资并不能刺激生产，需要补齐这个逻辑
@@ -147,6 +145,14 @@ class market:
         # print('imbalance:', D, firm.G)
         phi_bar = (D - G) / max(D, G)
         return phi_bar
+    
+    def GDP(self, log:dict):
+        '''
+        名义GDP = 总产量 * 价格
+        计算最近一年的名义GDP
+        '''
+        assert len(log) >= 12
+        return sum([log[key]['production'] * log[key]['price'] for key in list(log.keys())[-12:]])
 
 def simulation(config:Configuration):
     
@@ -166,8 +172,10 @@ def simulation(config:Configuration):
     F.P = np.mean([a.w for a in agents]) # t=0 initial price
     unem_rate = 0.
     infla_rate = 0.
+    Nominal_GDP = 0.
     log = {}
     log[0] = {
+        'year': 0,
         'work_state': [a.l for a in agents], 
         'wage': [a.w for a in agents],
         'price': F.P, 
@@ -179,7 +187,7 @@ def simulation(config:Configuration):
         'unemployment_rate': unem_rate,
         'deposit': {i: 0.0 for i in range(config.num_agents)},
         'avg_wage': sum([a.w for a in agents])/config.num_agents,
-        
+        'GDP': Nominal_GDP,
         }
     
     for t in range(1, config.num_time_steps+1):
@@ -236,10 +244,11 @@ def simulation(config:Configuration):
             unem_rate = M.unemployment(log)
             infla_rate = M.inflation(log)
             B.rate_adjustment(unem_rate, infla_rate) 
-            
+            Nominal_GDP = M.GDP(log)
         
         
         log[t] = {
+            'year': t // 12.1 + 1,
             'work_state': work_state, 
             'wage': [a.w for a in agents],
             'price': F.P, 
@@ -251,7 +260,7 @@ def simulation(config:Configuration):
             'unemployment_rate': unem_rate,
             'deposit': deepcopy(B.deposits),
             'avg_wage': sum([a.w for a in agents])/config.num_agents,
-            
+            'GDP': Nominal_GDP,
             }
         
         if t % 6 == 0 and t > 60:
@@ -308,13 +317,13 @@ if __name__ == '__main__':
     axs[0, 2].set_xlabel('Time / Month'); axs[0, 2].set_ylabel('Unemployment rate')
     axs[0, 2].grid()
     
-    axs[0, 3].plot([log[key]['production']*log[key]['price'] for key in log.keys()])
+    axs[0, 3].plot([log[key]['GDP'] for key in log.keys()])
     axs[0, 3].set_xlabel('Time / Month'); axs[0, 3].set_ylabel('Nominal GDP')
     axs[0, 3].grid()
     
 
     axs[1, 0].plot(imba_history)
-    axs[1, 0].set_xlabel('Time / Month'); axs[1, 0].set_ylabel('Imbalance')
+    axs[1, 0].set_xlabel('Time / Month'); axs[1, 0].set_ylabel('Imbalance: Demand - Supply')
     axs[1, 0].grid()
     
     axs[1, 1].plot(taxes_history)
