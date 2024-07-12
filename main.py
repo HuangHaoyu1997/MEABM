@@ -210,17 +210,10 @@ def simulation(config:Configuration):
         # price and wage adjustment #
         #############################
         phi_bar = M.imbalance(agents, F.P, F.G, B.deposits)
-        
-        # for a in agents:
-        #     a.consume_adjustment(F.P, B.deposits[a.id])
-        #     # print(a.id, B.deposits[a.id])
-        #     a.work_adjustment(B.deposits[a.id], B.rate)
-        
         F.wage_adjustment(agents, phi_bar)
         F.price_adjustment(phi_bar)
         
         F.G = tmp_G
-        # print(t, tmp_G)
         
         #####################
         # annual operation  #
@@ -263,10 +256,10 @@ def simulation(config:Configuration):
                 this_period_price = sum([log[tt]['price'] for tt in range(t-6+1, t+1)])
                 sgn_price = 1 if this_period_price >= last_period_price else -1
                 
-                a.pw += sgn_deposit * np.random.uniform() * 0.3
-                a.pw += sgn_wage * np.random.uniform() * 0.3
-                a.pc += sgn_price * np.random.uniform() * 0.002
-                a.pc += sgn_deposit * np.random.uniform() * 0.002
+                a.pw += sgn_deposit * np.random.uniform() * config.pw_delta
+                a.pw += sgn_wage * np.random.uniform() * config.pw_delta
+                a.pc += sgn_price * np.random.uniform() * config.pc_delta
+                a.pc += sgn_deposit * np.random.uniform() * config.pc_delta
 
     return log
 

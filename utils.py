@@ -53,7 +53,7 @@ def inflation(log:dict[dict]):
     price_history = [log[key]['price'] for key in log.keys()]
     assert len(price_history) >= 12
     if len(price_history) < 12*2:
-        return (np.mean(price_history[-12:]) - np.mean(price_history[0:-12])) / np.mean(price_history[0:-12])
+        return (np.mean(price_history[-12:]) - price_history[-12]) / price_history[-12]
     else:
         return (np.mean(price_history[-12:]) - np.mean(price_history[-12*2:-12])) / np.mean(price_history[-12*2:-12])
 
