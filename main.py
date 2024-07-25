@@ -264,66 +264,14 @@ def simulation(config:Configuration):
     return log
 
 if __name__ == '__main__':
-    import matplotlib.pyplot as plt
+    from utils import plot_logs
     from config import Configuration
     
     config = Configuration()
     
     log = simulation(config)
-    # print(log[2])
-    price_history = [log[key]['price'] for key in log.keys()]
-    rate_history = [log[key]['rate'] for key in log.keys()]
-    imba_history = [log[key]['imbalance'] for key in log.keys()]
-    taxes_history = [log[key]['taxes']/config.num_agents for key in log.keys()]
+    plot_logs('log.png', log, config)
     
-    fig, axs = plt.subplots(3, 4, figsize=(24, 16))
-    fig.suptitle('xxx')
-    
-    axs[0, 0].plot(price_history)
-    axs[0, 0].set_xlabel('Time / Month'); axs[0, 0].set_ylabel('Price')
-    axs[0, 0].grid()
-    
-    axs[0, 1].plot(rate_history)
-    axs[0, 1].set_xlabel('Time / Month'); axs[0, 1].set_ylabel('Interest rate')
-    axs[0, 1].grid()
-    
-    axs[0, 2].plot([log[key]['unemployment_rate'] for key in log.keys()])
-    axs[0, 2].set_xlabel('Time / Month'); axs[0, 2].set_ylabel('Unemployment rate')
-    axs[0, 2].grid()
-    
-    axs[0, 3].plot([log[key]['GDP'] for key in log.keys()])
-    axs[0, 3].set_xlabel('Time / Month'); axs[0, 3].set_ylabel('Nominal GDP')
-    axs[0, 3].grid()
-    
-
-    axs[1, 0].plot(imba_history)
-    axs[1, 0].set_xlabel('Time / Month'); axs[1, 0].set_ylabel('Imbalance: Demand - Supply')
-    axs[1, 0].grid()
-    
-    axs[1, 1].plot(taxes_history)
-    axs[1, 1].set_xlabel('Time / Month'); axs[1, 1].set_ylabel('Avg tax revenue per capita')
-    axs[1, 1].grid()
-    
-    axs[1, 2].plot([log[key]['production'] for key in log.keys()])
-    axs[1, 2].set_xlabel('Time / Month'); axs[1, 2].set_ylabel('Production')
-    axs[1, 2].grid()
-    
-    axs[2, 0].plot([total_deposit(log[key]['deposit'])/config.num_agents for key in log.keys()])
-    axs[2, 0].set_xlabel('Time / Month'); axs[2, 0].set_ylabel('Deposit per capita')
-    axs[2, 0].grid()
-    
-    axs[2, 1].plot([log[key]['avg_wage'] for key in log.keys()])
-    axs[2, 1].set_xlabel('Time / Month'); axs[2, 1].set_ylabel('Avg wage')
-    axs[2, 1].grid()
-    
-    axs[2, 2].plot([log[key]['inflation_rate'] for key in log.keys()])
-    axs[2, 2].set_xlabel('Time / Month'); axs[2, 2].set_ylabel('Inflation rate')
-    axs[2, 2].grid()
-    
-    # plt.tight_layout()
-
-    plt.savefig('log.png', dpi=300)
-    # plt.show()
     
     
     
