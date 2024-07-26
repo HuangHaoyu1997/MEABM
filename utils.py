@@ -66,7 +66,7 @@ def GDP(log:dict):
     return sum([log[key]['production'] * log[key]['price'] for key in list(log.keys())[-12:]])
 
 
-def plot_logs(img_name:str, log:dict, config:Configuration):
+def plot_log(img_name:str, log:dict, config:Configuration):
     import matplotlib.pyplot as plt
     
     price_history = [log[key]['price'] for key in log.keys()]
@@ -81,36 +81,26 @@ def plot_logs(img_name:str, log:dict, config:Configuration):
             axs[i, j].set_xlabel('Time / Month')
             axs[i, j].grid()
     
-    axs[0, 0].plot(price_history)
-    axs[0, 0].set_ylabel('Price')
+    axs[0, 0].plot(price_history); axs[0, 0].set_ylabel('Price')
     
-    axs[0, 1].plot(rate_history)
-    axs[0, 1].set_ylabel('Interest rate')
+    axs[0, 1].plot(rate_history); axs[0, 1].set_ylabel('Interest rate')
     
-    axs[0, 2].plot([log[key]['unemployment_rate'] for key in log.keys()])
-    axs[0, 2].set_ylabel('Unemployment rate')
+    axs[0, 2].plot([log[key]['unemployment_rate'] for key in log.keys()]); axs[0, 2].set_ylabel('Unemployment rate')
     
-    axs[0, 3].plot([log[key]['GDP'] for key in log.keys()])
-    axs[0, 3].set_ylabel('Nominal GDP')
+    axs[0, 3].plot([log[key]['GDP'] for key in log.keys()]); axs[0, 3].set_ylabel('Nominal GDP')
     
-
-    axs[1, 0].plot(imba_history)
-    axs[1, 0].set_ylabel('Imbalance: Demand - Supply')
+    axs[1, 0].plot(imba_history); axs[1, 0].set_ylabel('Imbalance: Demand - Supply')
     
-    axs[1, 1].plot(taxes_history)
-    axs[1, 1].set_ylabel('Avg tax revenue per capita')
+    axs[1, 1].plot(taxes_history); axs[1, 1].set_ylabel('Avg tax revenue per capita')
     
-    axs[1, 2].plot([log[key]['production'] for key in log.keys()])
-    axs[1, 2].set_ylabel('Production')
+    axs[1, 2].plot([log[key]['production'] for key in log.keys()]); axs[1, 2].set_ylabel('Production')
     
     axs[2, 0].plot([total_deposit(log[key]['deposit'])/config.num_agents for key in log.keys()])
     axs[2, 0].set_ylabel('Deposit per capita')
     
-    axs[2, 1].plot([log[key]['avg_wage'] for key in log.keys()])
-    axs[2, 1].set_ylabel('Avg wage')
+    axs[2, 1].plot([log[key]['avg_wage'] for key in log.keys()]); axs[2, 1].set_ylabel('Avg wage')
     
-    axs[2, 2].plot([log[key]['inflation_rate'] for key in log.keys()])
-    axs[2, 2].set_ylabel('Inflation rate')
+    axs[2, 2].plot([log[key]['inflation_rate'] for key in log.keys()]); axs[2, 2].set_ylabel('Inflation rate')
     
     plt.tight_layout()
 

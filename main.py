@@ -1,6 +1,6 @@
 import numpy as np
 import random
-from utils import beta_dist, pay_wage, taxation, total_deposit, inflation, GDP
+from utils import beta_dist, pay_wage, taxation, inflation, GDP
 from copy import deepcopy
 from config import Configuration
 
@@ -264,13 +264,15 @@ def simulation(config:Configuration):
     return log
 
 if __name__ == '__main__':
-    from utils import plot_logs
+    from utils import plot_log
     from config import Configuration
+    logs = []
+    for i in range(5):
+        config = Configuration()
+        log = simulation(config)
+        logs.append(log)
     
-    config = Configuration()
-    
-    log = simulation(config)
-    plot_logs('log.png', log, config)
+    # plot_log('log.png', log, config)
     
     
     
