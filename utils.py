@@ -95,8 +95,7 @@ def plot_log(img_name:str, log:dict, config:Configuration):
     
     axs[1, 2].plot([log[key]['production'] for key in log.keys()]); axs[1, 2].set_ylabel('Production')
     
-    axs[2, 0].plot([total_deposit(log[key]['deposit'])/config.num_agents for key in log.keys()])
-    axs[2, 0].set_ylabel('Deposit per capita')
+    axs[2, 0].plot([total_deposit(log[key]['deposit'])/config.num_agents for key in log.keys()]); axs[2, 0].set_ylabel('Deposit per capita')
     
     axs[2, 1].plot([log[key]['avg_wage'] for key in log.keys()]); axs[2, 1].set_ylabel('Avg wage')
     
