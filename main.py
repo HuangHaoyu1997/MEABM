@@ -205,9 +205,9 @@ def simulation(config:Configuration):
                 B.deposit(a.id, w + sum(taxes)/config.num_agents) # redistribution
         
         
-        ###############################
-        # consumption in random order #
-        ###############################
+        ###########################################
+        # consumption in random order 随机顺序消费 #
+        ###########################################
         random_list = np.arange(config.num_agents)
         np.random.shuffle(random_list)
         tmp_G = deepcopy(F.G)
@@ -267,12 +267,12 @@ def simulation(config:Configuration):
                 
                 last_period_price = sum([log[tt]['price'] for tt in range(t-12+1, t-6+1)])
                 this_period_price = sum([log[tt]['price'] for tt in range(t-6+1, t+1)])
-                sgn_price = 1 if this_period_price >= last_period_price else -1
+                sgn_price = -1 if this_period_price >= last_period_price else 1
                 
-                a.pw += sgn_deposit * np.random.uniform() * config.pw_delta
-                a.pw += sgn_wage * np.random.uniform() * config.pw_delta
-                a.pc += sgn_price * np.random.uniform() * config.pc_delta
-                a.pc += sgn_deposit * np.random.uniform() * config.pc_delta
+                a.pw += sgn_deposit * np.random.uniform() * config.pw_delta # 存款多了减少工作意愿
+                a.pw += sgn_wage * np.random.uniform() * config.pw_delta    # 工资多了增加工作意愿
+                a.pc += sgn_price * np.random.uniform() * config.pc_delta   # 价格上涨减少消费意愿
+                a.pc += sgn_deposit * np.random.uniform() * config.pc_delta # 存款多了增加消费意愿
 
     return log
 
@@ -282,13 +282,13 @@ if __name__ == '__main__':
     
     config = Configuration()
     config.seed = 123456
-    # logs = []
-    # for i in range(5):
-    #     print(f'Simulation {i+1}/5')
-    #     config.seed += i
-    #     log = simulation(config)
-    #     logs.append(log)
-    # plot_bar('bar.png', logs, config)
+    logs = []
+    for i in range(5):
+        print(f'Simulation {i+1}/5')
+        config.seed += i
+        log = simulation(config)
+        logs.append(log)
+    plot_bar('bar.png', logs, config)
     
-    log = simulation(config)
-    plot_log('log.png', log, config)
+    # log = simulation(config)
+    # plot_log('log.png', log, config)
