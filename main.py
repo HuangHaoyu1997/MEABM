@@ -1,6 +1,6 @@
 import numpy as np
 import random
-from utils import beta_dist, pay_wage, taxation, inflation, GDP
+from utils import beta_dist, pay_wage, taxation, inflation, GDP, unemployment
 from copy import deepcopy
 from config import Configuration
 
@@ -109,15 +109,6 @@ class firm:
 class market:
     def __init__(self, ) -> None:
         pass
-        
-    
-    def unemployment(self, log:dict):
-        work_state_history = [log[key]['work_state'] for key in log.keys()]
-        unemployment_cnt = 0
-        tmp_states = work_state_history[-12:]
-        for state in tmp_states:
-            unemployment_cnt += state.count(0)
-        return unemployment_cnt / (12 * len(state))
     
     def total_intended_demand(self, agent_list:list[agent], P:float, deposits:dict) -> float:
         '''
@@ -242,7 +233,7 @@ def simulation(config:Configuration):
         #####################
         if t % 12 == 0:
             B.interest(agents) # interest payment
-            unem_rate = M.unemployment(log)
+            unem_rate = unemployment(log)
             infla_rate = inflation(log)
             B.rate_adjustment(unem_rate, infla_rate) 
             Nominal_GDP = GDP(log)

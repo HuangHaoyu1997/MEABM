@@ -22,7 +22,10 @@ def pay_wage(agent_list:list):
     return wages
 
 def taxation(wages:list[float]):
-    brackets = list(np.array([0, 9700, 39475, 84200, 160725, 204100, 510300])/12) # monthly income brackets
+    '''
+    阶梯税率
+    '''
+    brackets = [0, 9700/12, 39475/12, 84200/12, 160725/12, 204100/12, 510300/12] # monthly income brackets
     rates = [0.1, 0.12, 0.22, 0.24, 0.32, 0.35, 0.37] # tax rates
     
     taxes = []
@@ -65,6 +68,16 @@ def GDP(log:dict):
     assert len(log) >= 12
     return sum([log[key]['production'] * log[key]['price'] for key in list(log.keys())[-12:]])
 
+def unemployment(log:dict):
+    '''
+    统计最近一年的失业率
+    '''
+    work_state_history = [log[key]['work_state'] for key in log.keys()]
+    unemployment_cnt = 0
+    tmp_states = work_state_history[-12:]
+    for state in tmp_states:
+        unemployment_cnt += state.count(0)
+    return unemployment_cnt / (12 * len(state))
 
 def plot_bar(img_name:str, logs:list[dict], config:Configuration):
     import matplotlib.pyplot as plt
