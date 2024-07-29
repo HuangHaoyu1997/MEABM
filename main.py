@@ -101,6 +101,7 @@ class firm:
             a.w *= (1 + sgn * self.alpha_w * abs(imbalance) * np.random.uniform())
     
     def price_adjustment(self, imbalance:float):
+        
         sgn = 1 if imbalance > 0 else -1
         self.P *= (1 + sgn * self.alpha_p * abs(imbalance) * np.random.uniform())
         return self.P
@@ -139,6 +140,9 @@ class market:
     
 
 def simulation(config:Configuration):
+    '''
+    one episode of simulation
+    '''
     random.seed(config.seed)
     np.random.seed(config.seed)
     
@@ -179,6 +183,21 @@ def simulation(config:Configuration):
     for t in range(1, config.num_time_steps+1):
         
         work_state = [a.work_decision() for a in agents] # work decision
+        
+        
+        
+        ################ 干 预 ################
+        # 增加失业
+        # 产量减少
+        # GDP下降
+        
+        
+        if t >= 500 and t <= 900:
+            work_state = []
+            for a in agents:
+                a.l = 1 if random.random() < 0.2 else 0
+                work_state.append(a.l)
+        
         production = F.produce(agents) # production
         
         
@@ -189,7 +208,10 @@ def simulation(config:Configuration):
         for a, w in zip(agents, wages_after_tax):
             a.z = w # update monthly income
             # print(t, a.id, w, sum(taxes), w + sum(taxes)/config.num_agents)
-            B.deposit(a.id, w + sum(taxes)/config.num_agents) # redistribution
+            if t >= 550 and t <= 900:
+                B.deposit(a.id, w + sum(taxes)/config.num_agents + 0.03*B.deposits[a.id]) # redistribution
+            else:
+                B.deposit(a.id, w + sum(taxes)/config.num_agents) # redistribution
         
         
         ###############################
@@ -264,18 +286,18 @@ def simulation(config:Configuration):
     return log
 
 if __name__ == '__main__':
-    from utils import plot_log
+    from utils import plot_log, plot_bar
     from config import Configuration
-    logs = []
-    for i in range(5):
-        config = Configuration()
-        log = simulation(config)
-        logs.append(log)
     
-    # plot_log('log.png', log, config)
+    config = Configuration()
+    config.seed = 123456
+    # logs = []
+    # for i in range(5):
+    #     print(f'Simulation {i+1}/5')
+    #     config.seed += i
+    #     log = simulation(config)
+    #     logs.append(log)
+    # plot_bar('bar.png', logs, config)
     
-    
-    
-    
-    
-    
+    log = simulation(config)
+    plot_log('log.png', log, config)

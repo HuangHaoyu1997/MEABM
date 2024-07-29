@@ -66,20 +66,78 @@ def GDP(log:dict):
     return sum([log[key]['production'] * log[key]['price'] for key in list(log.keys())[-12:]])
 
 
+def plot_bar(img_name:str, logs:list[dict], config:Configuration):
+    import matplotlib.pyplot as plt
+    fig, axs = plt.subplots(3, 4, figsize=(24, 16))
+    fig.suptitle('xxx')
+    for i in range(3):
+        for j in range(4):
+            axs[i, j].set_xlabel('Time / Month'); axs[i, j].grid()
+    
+    prices = np.array([[log[key]['price'] for key in log.keys()] for log in logs])
+    prices_mean = np.mean(prices, axis=0)
+    prices_std = np.std(prices, axis=0)
+    x = list(range(len(prices[0])))
+    prices_min = prices_mean - prices_std
+    prices_max = prices_mean + prices_std
+    
+    
+    rates = np.array([[log[key]['rate'] for key in log.keys()] for log in logs])
+    rates_mean = np.mean(rates, axis=0)
+    rates_std = np.std(rates, axis=0)
+    rates_min = rates_mean - rates_std
+    rates_max = rates_mean + rates_std
+    
+    um_rates = [[log[key]['unemployment_rate'] for key in log.keys()] for log in logs]
+    um_rates_mean = np.mean(um_rates, axis=0)
+    um_rates_std = np.std(um_rates, axis=0)
+    um_rates_min = um_rates_mean - um_rates_std
+    um_rates_max = um_rates_mean + um_rates_std
+    
+    GDPs = [[log[key]['GDP'] for key in log.keys()] for log in logs]
+    GDPs_mean = np.mean(GDPs, axis=0)
+    GDPs_std = np.std(GDPs, axis=0)
+    GDPs_min = GDPs_mean - GDPs_std
+    GDPs_max = GDPs_mean + GDPs_std
+    
+    imbas = [[log[key]['imbalance'] for key in log.keys()] for log in logs]
+    imbas_mean = np.mean(imbas, axis=0)
+    imbas_std = np.std(imbas, axis=0)
+    imbas_min = imbas_mean - imbas_std
+    imbas_max = imbas_mean + imbas_std
+    
+    
+    axs[0, 0].plot(x, prices_mean); axs[0, 0].set_ylabel('Price')
+    axs[0, 0].fill_between(x, prices_min, prices_max, color='gray', alpha=0.3)
+    
+    axs[0, 1].plot(x, rates_mean); axs[0, 1].set_ylabel('Interest rate')
+    axs[0, 1].fill_between(x, rates_min, rates_max, color='gray', alpha=0.3)
+    
+    axs[0, 2].plot(x, um_rates_mean); axs[0, 2].set_ylabel('Unemployment rate')
+    axs[0, 2].fill_between(x, um_rates_min, um_rates_max, color='gray', alpha=0.3)
+    
+    axs[0, 3].plot(x, GDPs_mean); axs[0, 3].set_ylabel('Nominal GDP')
+    axs[0, 3].fill_between(x, GDPs_min, GDPs_max, color='gray', alpha=0.3)
+    
+    axs[1, 0].plot(x, imbas_mean); axs[1, 0].set_ylabel('Imbalance: Demand - Supply')
+    axs[1, 0].fill_between(x, imbas_min, imbas_max, color='gray', alpha=0.3)
+    
+    plt.tight_layout()
+    plt.savefig(img_name, dpi=300)
+
 def plot_log(img_name:str, log:dict, config:Configuration):
     import matplotlib.pyplot as plt
-    
-    price_history = [log[key]['price'] for key in log.keys()]
-    rate_history = [log[key]['rate'] for key in log.keys()]
-    imba_history = [log[key]['imbalance'] for key in log.keys()]
-    taxes_history = [log[key]['taxes']/config.num_agents for key in log.keys()]
     
     fig, axs = plt.subplots(3, 4, figsize=(24, 16))
     fig.suptitle('xxx')
     for i in range(3):
         for j in range(4):
-            axs[i, j].set_xlabel('Time / Month')
-            axs[i, j].grid()
+            axs[i, j].set_xlabel('Time / Month'); axs[i, j].grid()
+    
+    price_history = [log[key]['price'] for key in log.keys()]
+    rate_history = [log[key]['rate'] for key in log.keys()]
+    imba_history = [log[key]['imbalance'] for key in log.keys()]
+    taxes_history = [log[key]['taxes']/config.num_agents for key in log.keys()]
     
     axs[0, 0].plot(price_history); axs[0, 0].set_ylabel('Price')
     
@@ -102,7 +160,6 @@ def plot_log(img_name:str, log:dict, config:Configuration):
     axs[2, 2].plot([log[key]['inflation_rate'] for key in log.keys()]); axs[2, 2].set_ylabel('Inflation rate')
     
     plt.tight_layout()
-
     plt.savefig(img_name, dpi=300)
     # plt.show()
 
