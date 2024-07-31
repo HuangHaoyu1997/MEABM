@@ -130,7 +130,7 @@ class market:
     
     
 
-def simulation(config:Configuration, event=False):
+def simulation(config:Configuration, event=False, intervention=False):
     '''
     one episode of simulation
     '''
@@ -173,19 +173,33 @@ def simulation(config:Configuration, event=False):
     
     for t in range(1, config.num_time_steps+1):
         
-        work_state = [a.work_decision() for a in agents] # work decision
         
-        ################ 干 预 ################
+        
+        ################ 事 件 开 始 ################
         # 增加失业
         # 产量减少
         # GDP下降
         
+        # if event:
+        #     if t >= 500 and t <= 900:
+        #         work_state = []
+        #         for a in agents:
+        #             a.l = 1 if random.random() < 0.3 else 0
+        #             work_state.append(a.l)
+        
         if event:
+            if t == 500:
+                a_pw = [a.pw for a in agents]
+
             if t >= 500 and t <= 900:
-                work_state = []
-                for a in agents:
-                    a.l = 1 if random.random() < 0.3 else 0
-                    work_state.append(a.l)
+                for a, pw in zip(agents, a_pw):
+                    # a.pw = 0.1 ** (1/400) * a.pw # 在t=900时，就业意愿下降到t=500时的25%
+                    a.pw = (0.5 ** (1/(900-500))) ** (t-500) * pw
+            work_state = [a.work_decision() for a in agents] # work decision
+        else:
+            work_state = [a.work_decision() for a in agents] # work decision
+        ################ 事 件 结 束 ################
+        
         
         production = F.produce(agents) # production
         
@@ -198,10 +212,12 @@ def simulation(config:Configuration, event=False):
             a.z = w # update monthly income
             # print(t, a.id, w, sum(taxes), w + sum(taxes)/config.num_agents)
             
-            if t >= 550 and t <= 900 and event and False:
+            ################ 干 预 开 始 ################
+            if t >= 550 and t <= 900 and intervention:
                 B.deposit(a.id, w + sum(taxes)/config.num_agents + 0.04*B.deposits[a.id]) # redistribution
             else:
                 B.deposit(a.id, w + sum(taxes)/config.num_agents) # redistribution
+            ################ 干 预 结 束 ################
         
         
         ###########################################
@@ -281,21 +297,39 @@ if __name__ == '__main__':
     
     config = Configuration()
     config.seed = 123456
-    logs = []
+    logs, logs_no_event = [], []
     for i in range(5):
         print(f'Simulation {i+1}/5')
         config.seed += i
-        log = simulation(config, event=True)
+        log = simulation(config, event=True, intervention=True)
         logs.append(log)
-    
+        log = simulation(config, event=False, intervention=False)
+        logs_no_event.append(log)
+        
+    plot_bar('bar-intervention.png', logs, logs_no_event, config)
     
     config.seed = 123456
-    logs_no_event = []
+    logs, logs_no_event = [], []
     for i in range(5):
         print(f'Simulation {i+1}/5')
         config.seed += i
-        log = simulation(config, event=False)
+        log = simulation(config, event=True, intervention=False)
+        logs.append(log)
+        log = simulation(config, event=False, intervention=False)
         logs_no_event.append(log)
-    plot_bar('bar-event.png', logs, logs_no_event, config)
+        
+    plot_bar('bar-no-intervention.png', logs, logs_no_event, config)
+    
+    config.seed = 123456
+    logs, logs_no_event = [], []
+    for i in range(5):
+        print(f'Simulation {i+1}/5')
+        config.seed += i
+        log = simulation(config, event=False, intervention=True)
+        logs.append(log)
+        log = simulation(config, event=False, intervention=False)
+        logs_no_event.append(log)
+        
+    plot_bar('bar-no-event-intervention.png', logs, logs_no_event, config)
     # log = simulation(config)
     # plot_log('log.png', log, config)

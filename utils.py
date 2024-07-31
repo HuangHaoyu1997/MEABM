@@ -104,7 +104,7 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
     rates_min = rates_mean - rates_std
     rates_max = rates_mean + rates_std
     
-    um_rates = [[log[key]['unemployment_rate'] for key in log.keys()] for log in logs]
+    um_rates = [[1-log[key]['unemployment_rate'] for key in log.keys()] for log in logs]
     um_rates_mean = np.mean(um_rates, axis=0)
     um_rates_std = np.std(um_rates, axis=0)
     um_rates_min = um_rates_mean - um_rates_std
@@ -135,6 +135,12 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
     GDPs_min = GDPs_mean - GDPs_std
     GDPs_max = GDPs_mean + GDPs_std
     
+    deposits = [[total_deposit(log[key]['deposit'])/config.num_agents for key in log.keys()] for log in logs]
+    deposits_mean = np.mean(deposits, axis=0)
+    deposits_std = np.std(deposits, axis=0)
+    deposits_min = deposits_mean - deposits_std
+    deposits_max = deposits_mean + deposits_std
+    
     avg_wages = [[log[key]['avg_wage'] for key in log.keys()] for log in logs]
     avg_wages_mean = np.mean(avg_wages, axis=0)
     avg_wages_std = np.std(avg_wages, axis=0)
@@ -147,7 +153,7 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
     axs[0, 1].plot(x, rates_mean); axs[0, 1].set_ylabel('Interest rate', fontsize=14)
     axs[0, 1].fill_between(x, rates_min, rates_max, color='red', alpha=0.3)
     
-    axs[0, 2].plot(x, um_rates_mean); axs[0, 2].set_ylabel('Unemployment rate', fontsize=14)
+    axs[0, 2].plot(x, um_rates_mean); axs[0, 2].set_ylabel('Employment rate', fontsize=14)
     axs[0, 2].fill_between(x, um_rates_min, um_rates_max, color='red', alpha=0.3)
     
     axs[0, 3].plot(x, inflation_rates_mean); axs[0, 3].set_ylabel('Inflation rate', fontsize=14)
@@ -161,6 +167,9 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
     
     axs[1, 3].plot(x, GDPs_mean); axs[1, 3].set_ylabel('Nominal GDP', fontsize=14)
     axs[1, 3].fill_between(x, GDPs_min, GDPs_max, color='red', alpha=0.3)
+    
+    axs[2, 0].plot(x, deposits_mean); axs[2, 0].set_ylabel('Deposit per capita', fontsize=14)
+    axs[2, 0].fill_between(x, deposits_min, deposits_max, color='red', alpha=0.3)
     
     axs[2, 1].plot(x, avg_wages_mean); axs[2, 1].set_ylabel('Avg wage', fontsize=14)
     axs[2, 1].fill_between(x, avg_wages_min, avg_wages_max, color='red', alpha=0.3)
@@ -179,7 +188,7 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
         rates_min = rates_mean - rates_std
         rates_max = rates_mean + rates_std
         
-        um_rates = [[log[key]['unemployment_rate'] for key in log.keys()] for log in logs_compare]
+        um_rates = [[1-log[key]['unemployment_rate'] for key in log.keys()] for log in logs_compare]
         um_rates_mean = np.mean(um_rates, axis=0)
         um_rates_std = np.std(um_rates, axis=0)
         um_rates_min = um_rates_mean - um_rates_std
@@ -209,6 +218,12 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
         GDPs_min = GDPs_mean - GDPs_std
         GDPs_max = GDPs_mean + GDPs_std
         
+        deposits = [[total_deposit(log[key]['deposit'])/config.num_agents for key in log.keys()] for log in logs_compare]
+        deposits_mean = np.mean(deposits, axis=0)
+        deposits_std = np.std(deposits, axis=0)
+        deposits_min = deposits_mean - deposits_std
+        deposits_max = deposits_mean + deposits_std
+        
         avg_wages = [[log[key]['avg_wage'] for key in log.keys()] for log in logs_compare]
         avg_wages_mean = np.mean(avg_wages, axis=0)
         avg_wages_std = np.std(avg_wages, axis=0)
@@ -221,7 +236,7 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
         axs[0, 1].plot(x, rates_mean); axs[0, 1].set_ylabel('Interest rate', fontsize=14)
         axs[0, 1].fill_between(x, rates_min, rates_max, color='gray', alpha=0.3)
         
-        axs[0, 2].plot(x, um_rates_mean); axs[0, 2].set_ylabel('Unemployment rate', fontsize=14)
+        axs[0, 2].plot(x, um_rates_mean); axs[0, 2].set_ylabel('Employment rate', fontsize=14)
         axs[0, 2].fill_between(x, um_rates_min, um_rates_max, color='gray', alpha=0.3)
         
         axs[0, 3].plot(x, inflation_rates_mean); axs[0, 3].set_ylabel('Inflation rate', fontsize=14)
@@ -235,6 +250,9 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
         
         axs[1, 3].plot(x, GDPs_mean); axs[1, 3].set_ylabel('Nominal GDP', fontsize=14)
         axs[1, 3].fill_between(x, GDPs_min, GDPs_max, color='gray', alpha=0.3)
+        
+        axs[2, 0].plot(x, deposits_mean); axs[2, 0].set_ylabel('Deposit per capita', fontsize=14)
+        axs[2, 0].fill_between(x, deposits_min, deposits_max, color='gray', alpha=0.3)
         
         axs[2, 1].plot(x, avg_wages_mean); axs[2, 1].set_ylabel('Avg wage', fontsize=14)
         axs[2, 1].fill_between(x, avg_wages_min, avg_wages_max, color='gray', alpha=0.3)
@@ -259,7 +277,7 @@ def plot_log(img_name:str, log:dict, config:Configuration):
     
     axs[0, 1].plot(rate_history); axs[0, 1].set_ylabel('Interest rate')
     
-    axs[0, 2].plot([log[key]['unemployment_rate'] for key in log.keys()]); axs[0, 2].set_ylabel('Unemployment rate')
+    axs[0, 2].plot([1-log[key]['unemployment_rate'] for key in log.keys()]); axs[0, 2].set_ylabel('Employment rate')
     
     axs[0, 3].plot([log[key]['GDP'] for key in log.keys()]); axs[0, 3].set_ylabel('Nominal GDP')
     
