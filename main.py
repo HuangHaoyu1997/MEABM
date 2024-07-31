@@ -130,7 +130,7 @@ class market:
     
     
 
-def simulation(config:Configuration):
+def simulation(config:Configuration, event=False):
     '''
     one episode of simulation
     '''
@@ -175,19 +175,17 @@ def simulation(config:Configuration):
         
         work_state = [a.work_decision() for a in agents] # work decision
         
-        
-        
         ################ 干 预 ################
         # 增加失业
         # 产量减少
         # GDP下降
         
-        
-        if t >= 500 and t <= 900:
-            work_state = []
-            for a in agents:
-                a.l = 1 if random.random() < 0.2 else 0
-                work_state.append(a.l)
+        if event:
+            if t >= 500 and t <= 900:
+                work_state = []
+                for a in agents:
+                    a.l = 1 if random.random() < 0.3 else 0
+                    work_state.append(a.l)
         
         production = F.produce(agents) # production
         
@@ -199,8 +197,9 @@ def simulation(config:Configuration):
         for a, w in zip(agents, wages_after_tax):
             a.z = w # update monthly income
             # print(t, a.id, w, sum(taxes), w + sum(taxes)/config.num_agents)
-            if t >= 550 and t <= 900:
-                B.deposit(a.id, w + sum(taxes)/config.num_agents + 0.03*B.deposits[a.id]) # redistribution
+            
+            if t >= 550 and t <= 900 and event and False:
+                B.deposit(a.id, w + sum(taxes)/config.num_agents + 0.04*B.deposits[a.id]) # redistribution
             else:
                 B.deposit(a.id, w + sum(taxes)/config.num_agents) # redistribution
         
@@ -286,9 +285,17 @@ if __name__ == '__main__':
     for i in range(5):
         print(f'Simulation {i+1}/5')
         config.seed += i
-        log = simulation(config)
+        log = simulation(config, event=True)
         logs.append(log)
-    plot_bar('bar.png', logs, config)
     
+    
+    config.seed = 123456
+    logs_no_event = []
+    for i in range(5):
+        print(f'Simulation {i+1}/5')
+        config.seed += i
+        log = simulation(config, event=False)
+        logs_no_event.append(log)
+    plot_bar('bar-event.png', logs, logs_no_event, config)
     # log = simulation(config)
     # plot_log('log.png', log, config)

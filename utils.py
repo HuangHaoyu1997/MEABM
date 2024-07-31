@@ -79,13 +79,16 @@ def unemployment(log:dict):
         unemployment_cnt += state.count(0)
     return unemployment_cnt / (12 * len(state))
 
-def plot_bar(img_name:str, logs:list[dict], config:Configuration):
+def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Configuration):
     import matplotlib.pyplot as plt
     fig, axs = plt.subplots(3, 4, figsize=(24, 16))
     fig.suptitle('xxx')
     for i in range(3):
         for j in range(4):
             axs[i, j].set_xlabel('Time / Month'); axs[i, j].grid()
+            axs[i, j].axvline(x=550, color='r', linestyle='--')
+            axs[i, j].axvline(x=900, color='r', linestyle='--')
+            
     
     prices = np.array([[log[key]['price'] for key in log.keys()] for log in logs])
     prices_mean = np.mean(prices, axis=0)
@@ -107,11 +110,12 @@ def plot_bar(img_name:str, logs:list[dict], config:Configuration):
     um_rates_min = um_rates_mean - um_rates_std
     um_rates_max = um_rates_mean + um_rates_std
     
-    GDPs = [[log[key]['GDP'] for key in log.keys()] for log in logs]
-    GDPs_mean = np.mean(GDPs, axis=0)
-    GDPs_std = np.std(GDPs, axis=0)
-    GDPs_min = GDPs_mean - GDPs_std
-    GDPs_max = GDPs_mean + GDPs_std
+    inflation_rates = [[log[key]['inflation_rate'] for key in log.keys()] for log in logs]
+    inflation_rates_mean = np.mean(inflation_rates, axis=0)
+    inflation_rates_std = np.std(inflation_rates, axis=0)
+    inflation_rates_min = inflation_rates_mean - inflation_rates_std
+    inflation_rates_max = inflation_rates_mean + inflation_rates_std
+    
     
     imbas = [[log[key]['imbalance'] for key in log.keys()] for log in logs]
     imbas_mean = np.mean(imbas, axis=0)
@@ -119,22 +123,121 @@ def plot_bar(img_name:str, logs:list[dict], config:Configuration):
     imbas_min = imbas_mean - imbas_std
     imbas_max = imbas_mean + imbas_std
     
+    productions = [[log[key]['production'] for key in log.keys()] for log in logs]
+    productions_mean = np.mean(productions, axis=0)
+    productions_std = np.std(productions, axis=0)
+    productions_min = productions_mean - productions_std
+    productions_max = productions_mean + productions_std
     
-    axs[0, 0].plot(x, prices_mean); axs[0, 0].set_ylabel('Price')
-    axs[0, 0].fill_between(x, prices_min, prices_max, color='gray', alpha=0.3)
+    GDPs = [[log[key]['GDP'] for key in log.keys()] for log in logs]
+    GDPs_mean = np.mean(GDPs, axis=0)
+    GDPs_std = np.std(GDPs, axis=0)
+    GDPs_min = GDPs_mean - GDPs_std
+    GDPs_max = GDPs_mean + GDPs_std
     
-    axs[0, 1].plot(x, rates_mean); axs[0, 1].set_ylabel('Interest rate')
-    axs[0, 1].fill_between(x, rates_min, rates_max, color='gray', alpha=0.3)
+    avg_wages = [[log[key]['avg_wage'] for key in log.keys()] for log in logs]
+    avg_wages_mean = np.mean(avg_wages, axis=0)
+    avg_wages_std = np.std(avg_wages, axis=0)
+    avg_wages_min = avg_wages_mean - avg_wages_std
+    avg_wages_max = avg_wages_mean + avg_wages_std
     
-    axs[0, 2].plot(x, um_rates_mean); axs[0, 2].set_ylabel('Unemployment rate')
-    axs[0, 2].fill_between(x, um_rates_min, um_rates_max, color='gray', alpha=0.3)
+    axs[0, 0].plot(x, prices_mean); axs[0, 0].set_ylabel('Price', fontsize=14)
+    axs[0, 0].fill_between(x, prices_min, prices_max, color='red', alpha=0.3)
     
-    axs[0, 3].plot(x, GDPs_mean); axs[0, 3].set_ylabel('Nominal GDP')
-    axs[0, 3].fill_between(x, GDPs_min, GDPs_max, color='gray', alpha=0.3)
+    axs[0, 1].plot(x, rates_mean); axs[0, 1].set_ylabel('Interest rate', fontsize=14)
+    axs[0, 1].fill_between(x, rates_min, rates_max, color='red', alpha=0.3)
     
-    axs[1, 0].plot(x, imbas_mean); axs[1, 0].set_ylabel('Imbalance: Demand - Supply')
-    axs[1, 0].fill_between(x, imbas_min, imbas_max, color='gray', alpha=0.3)
+    axs[0, 2].plot(x, um_rates_mean); axs[0, 2].set_ylabel('Unemployment rate', fontsize=14)
+    axs[0, 2].fill_between(x, um_rates_min, um_rates_max, color='red', alpha=0.3)
     
+    axs[0, 3].plot(x, inflation_rates_mean); axs[0, 3].set_ylabel('Inflation rate', fontsize=14)
+    axs[0, 3].fill_between(x, inflation_rates_min, inflation_rates_max, color='red', alpha=0.3)
+    
+    axs[1, 0].plot(x, imbas_mean); axs[1, 0].set_ylabel('Imbalance: Demand - Supply', fontsize=14)
+    axs[1, 0].fill_between(x, imbas_min, imbas_max, color='red', alpha=0.3)
+    
+    axs[1, 2].plot(x, productions_mean); axs[1, 2].set_ylabel('Production', fontsize=14)
+    axs[1, 2].fill_between(x, productions_min, productions_max, color='red', alpha=0.3)
+    
+    axs[1, 3].plot(x, GDPs_mean); axs[1, 3].set_ylabel('Nominal GDP', fontsize=14)
+    axs[1, 3].fill_between(x, GDPs_min, GDPs_max, color='red', alpha=0.3)
+    
+    axs[2, 1].plot(x, avg_wages_mean); axs[2, 1].set_ylabel('Avg wage', fontsize=14)
+    axs[2, 1].fill_between(x, avg_wages_min, avg_wages_max, color='red', alpha=0.3)
+    if logs_compare is not None:
+        prices = np.array([[log[key]['price'] for key in log.keys()] for log in logs_compare])
+        prices_mean = np.mean(prices, axis=0)
+        prices_std = np.std(prices, axis=0)
+        x = list(range(len(prices[0])))
+        prices_min = prices_mean - prices_std
+        prices_max = prices_mean + prices_std
+        
+        
+        rates = np.array([[log[key]['rate'] for key in log.keys()] for log in logs_compare])
+        rates_mean = np.mean(rates, axis=0)
+        rates_std = np.std(rates, axis=0)
+        rates_min = rates_mean - rates_std
+        rates_max = rates_mean + rates_std
+        
+        um_rates = [[log[key]['unemployment_rate'] for key in log.keys()] for log in logs_compare]
+        um_rates_mean = np.mean(um_rates, axis=0)
+        um_rates_std = np.std(um_rates, axis=0)
+        um_rates_min = um_rates_mean - um_rates_std
+        um_rates_max = um_rates_mean + um_rates_std
+        
+        inflation_rates = [[log[key]['inflation_rate'] for key in log.keys()] for log in logs_compare]
+        inflation_rates_mean = np.mean(inflation_rates, axis=0)
+        inflation_rates_std = np.std(inflation_rates, axis=0)
+        inflation_rates_min = inflation_rates_mean - inflation_rates_std
+        inflation_rates_max = inflation_rates_mean + inflation_rates_std
+        
+        imbas = [[log[key]['imbalance'] for key in log.keys()] for log in logs_compare]
+        imbas_mean = np.mean(imbas, axis=0)
+        imbas_std = np.std(imbas, axis=0)
+        imbas_min = imbas_mean - imbas_std
+        imbas_max = imbas_mean + imbas_std
+        
+        productions = [[log[key]['production'] for key in log.keys()] for log in logs_compare]
+        productions_mean = np.mean(productions, axis=0)
+        productions_std = np.std(productions, axis=0)
+        productions_min = productions_mean - productions_std
+        productions_max = productions_mean + productions_std
+        
+        GDPs = [[log[key]['GDP'] for key in log.keys()] for log in logs_compare]
+        GDPs_mean = np.mean(GDPs, axis=0)
+        GDPs_std = np.std(GDPs, axis=0)
+        GDPs_min = GDPs_mean - GDPs_std
+        GDPs_max = GDPs_mean + GDPs_std
+        
+        avg_wages = [[log[key]['avg_wage'] for key in log.keys()] for log in logs_compare]
+        avg_wages_mean = np.mean(avg_wages, axis=0)
+        avg_wages_std = np.std(avg_wages, axis=0)
+        avg_wages_min = avg_wages_mean - avg_wages_std
+        avg_wages_max = avg_wages_mean + avg_wages_std
+        
+        axs[0, 0].plot(x, prices_mean); axs[0, 0].set_ylabel('Price', fontsize=14)
+        axs[0, 0].fill_between(x, prices_min, prices_max, color='gray', alpha=0.3)
+        
+        axs[0, 1].plot(x, rates_mean); axs[0, 1].set_ylabel('Interest rate', fontsize=14)
+        axs[0, 1].fill_between(x, rates_min, rates_max, color='gray', alpha=0.3)
+        
+        axs[0, 2].plot(x, um_rates_mean); axs[0, 2].set_ylabel('Unemployment rate', fontsize=14)
+        axs[0, 2].fill_between(x, um_rates_min, um_rates_max, color='gray', alpha=0.3)
+        
+        axs[0, 3].plot(x, inflation_rates_mean); axs[0, 3].set_ylabel('Inflation rate', fontsize=14)
+        axs[0, 3].fill_between(x, inflation_rates_min, inflation_rates_max, color='gray', alpha=0.3)
+        
+        axs[1, 0].plot(x, imbas_mean); axs[1, 0].set_ylabel('Imbalance: Demand - Supply', fontsize=14)
+        axs[1, 0].fill_between(x, imbas_min, imbas_max, color='gray', alpha=0.3)
+        
+        axs[1, 2].plot(x, productions_mean); axs[1, 2].set_ylabel('Production', fontsize=14)
+        axs[1, 2].fill_between(x, productions_min, productions_max, color='gray', alpha=0.3)
+        
+        axs[1, 3].plot(x, GDPs_mean); axs[1, 3].set_ylabel('Nominal GDP', fontsize=14)
+        axs[1, 3].fill_between(x, GDPs_min, GDPs_max, color='gray', alpha=0.3)
+        
+        axs[2, 1].plot(x, avg_wages_mean); axs[2, 1].set_ylabel('Avg wage', fontsize=14)
+        axs[2, 1].fill_between(x, avg_wages_min, avg_wages_max, color='gray', alpha=0.3)
     plt.tight_layout()
     plt.savefig(img_name, dpi=300)
 
