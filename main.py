@@ -5,6 +5,10 @@ from copy import deepcopy
 from config import Configuration
 
 class agent:
+    '''
+    homogeneous worker/consumer agent.
+    working skill is same (unit one) for all agents.
+    '''
     def __init__(self, id:int, pw:float, pc:float, gamma:float, beta:float):
         self.id = id
         self.pw = pw         # probability of working
@@ -36,6 +40,9 @@ class agent:
 
 
 class bank:
+    '''
+    central bank
+    '''
     def __init__(self, rn:float, pi_t:float, un:float, alpha_pi:float, alpha_u:float):
         self.rn = rn        # natural interest rate, constant value
         self.pi_t = pi_t    # target inflation rate, constant value
@@ -68,7 +75,7 @@ class bank:
         Taylor rule for interest rate adjustment
         
         '''
-        rate_after = max(self.rn + self.pi_t + self.alpha_pi * (inflation_rate - self.pi_t) + self.alpha_u * (self.un - unemployment_rate), 0)
+        rate_after = max(self.rn + self.pi_t + self.alpha_pi * (inflation_rate - self.pi_t) + self.alpha_u * (self.un - unemployment_rate), -0.05)
         self.rate = rate_after
         return rate_after
 
@@ -214,7 +221,7 @@ def simulation(config:Configuration, event=False, intervention=False):
             
             ################ 干 预 开 始 ################
             if t >= 550 and t <= 900 and intervention:
-                B.deposit(a.id, w + sum(taxes)/config.num_agents + 0.04*B.deposits[a.id]) # redistribution
+                B.deposit(a.id, w + sum(taxes)/config.num_agents + 0.02*B.deposits[a.id]) # redistribution
             else:
                 B.deposit(a.id, w + sum(taxes)/config.num_agents) # redistribution
             ################ 干 预 结 束 ################
@@ -306,7 +313,7 @@ if __name__ == '__main__':
         log = simulation(config, event=False, intervention=False)
         logs_no_event.append(log)
         
-    plot_bar('bar-intervention.png', logs, logs_no_event, config)
+    plot_bar('bar-event-intervention.png', logs, logs_no_event, config)
     
     config.seed = 123456
     logs, logs_no_event = [], []
@@ -318,7 +325,7 @@ if __name__ == '__main__':
         log = simulation(config, event=False, intervention=False)
         logs_no_event.append(log)
         
-    plot_bar('bar-no-intervention.png', logs, logs_no_event, config)
+    plot_bar('bar-event-no-intervention.png', logs, logs_no_event, config)
     
     config.seed = 123456
     logs, logs_no_event = [], []

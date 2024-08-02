@@ -86,7 +86,7 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
     for i in range(3):
         for j in range(4):
             axs[i, j].set_xlabel('Time / Month'); axs[i, j].grid()
-            axs[i, j].axvline(x=550, color='r', linestyle='--')
+            axs[i, j].axvline(x=500, color='r', linestyle='--')
             axs[i, j].axvline(x=900, color='r', linestyle='--')
             
     
