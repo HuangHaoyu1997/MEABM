@@ -4,8 +4,8 @@ class Configuration:
     ##           仿 真 参 数           ##
     #####################################
     seed = int(time()) # 123
-    num_agents = 200
-    num_time_steps = 12 * 100
+    num_agents = 100
+    num_time_steps = 12 * 50
     
     
     #####################################

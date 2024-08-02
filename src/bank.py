@@ -1,4 +1,4 @@
-from agent import agent
+from src.agent import agent
 
 class bank:
     '''

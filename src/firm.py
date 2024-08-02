@@ -1,6 +1,6 @@
 import random
 import numpy as np
-from agent import agent
+from src.agent import agent
 
 class firm:
     def __init__(self, A:float, alpha_w:float, alpha_p:float):
@@ -15,7 +15,8 @@ class firm:
         production of essential goods
         '''
         # random production
-        production = sum([168 * self.A * (1 + random.random() * 0.05) for a in agent_list if a.l==1])
+        workers = sum([a.l for a in agent_list])
+        production = 168 * self.A * (1 + random.random() * 0.05) * (workers**0.9)
         # for a in agent_list:
         #     if a.l == 1: production += 168 * self.A
         self.G += production
