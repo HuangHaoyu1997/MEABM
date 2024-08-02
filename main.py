@@ -1,118 +1,13 @@
 import numpy as np
 import random
-from utils import beta_dist, pay_wage, taxation, inflation, GDP, unemployment
+from utils import taxation, inflation, GDP, unemployment, init_agents
 from copy import deepcopy
 from config import Configuration
-
-class agent:
-    '''
-    homogeneous worker/consumer agent.
-    working skill is same (unit one) for all agents.
-    '''
-    def __init__(self, id:int, pw:float, pc:float, gamma:float, beta:float):
-        self.id = id
-        self.pw = pw         # probability of working
-        self.w = 0           # hourly wage
-        self.z = 0           # monthly income
-        self.pc = pc         # proportion of consumption
-        self.l = 0           # work state (0: unemployed, 1: employed)
-        self.gamma = gamma
-        self.beta = beta
-        
-    def work_decision(self,):
-        self.l = 1 if random.random() < self.pw else 0
-        return self.l
-    
-    def work_adjustment(self, deposit:float, rate:float):
-        '''
-        adjust the probability of working based on deposit and interest rate
-        '''
-        self.pw = pow((self.z + 1e-5) / (deposit + deposit*rate + 1e-5), self.gamma)
-        # print(self.id, self.z, deposit, "pw:", self.pw)
-        return self.pw
-    
-    def consume_adjustment(self, P:float, deposit:float):
-        '''
-        adjust the proportion of consumption based on the price and deposit
-        '''
-        self.pc = pow(P / (deposit + self.z + 1e-5), self.beta)
-        return self.pc
+from src.agent import agent
+from src.firm import firm
+from src.bank import bank
 
 
-class bank:
-    '''
-    central bank
-    '''
-    def __init__(self, rn:float, pi_t:float, un:float, alpha_pi:float, alpha_u:float):
-        self.rn = rn        # natural interest rate, constant value
-        self.pi_t = pi_t    # target inflation rate, constant value
-        self.un = un        # natural unemployment rate, constant value
-        self.rate = rn      # initial interest rate = natural rate
-        self.alpha_pi = alpha_pi
-        self.alpha_u = alpha_u
-        self.deposits = {}
-    
-    def interest(self, agent_list:list[agent],):
-        '''
-        interest rate payment anually
-        '''
-        for a in agent_list:
-            self.deposits[a.id] *= (1 + self.rate)
-    
-    def deposit(self, agent_id, income:float):
-        '''
-        update the deposit of the agent with agent_id
-        '''
-        # print('before:', agent_id, self.deposits[agent_id])
-        if agent_id in self.deposits:
-            self.deposits[agent_id] += income
-        else:
-            self.deposits[agent_id] = income
-        # print('after:', agent_id, self.deposits[agent_id])
-    
-    def rate_adjustment(self, unemployment_rate:float, inflation_rate:float):
-        '''
-        Taylor rule for interest rate adjustment
-        
-        '''
-        rate_after = max(self.rn + self.pi_t + self.alpha_pi * (inflation_rate - self.pi_t) + self.alpha_u * (self.un - unemployment_rate), -0.05)
-        self.rate = rate_after
-        return rate_after
-
-class firm:
-    def __init__(self, A:float, alpha_w:float, alpha_p:float):
-        self.A = A # universal productivity
-        self.G = 0 # quantity of essential goods
-        self.P = 0 # price of essential goods
-        self.alpha_w = alpha_w # wage adjustment parameter
-        self.alpha_p = alpha_p # price adjustment parameter
-
-    def produce(self, agent_list:list[agent],):
-        '''
-        production of essential goods
-        '''
-        production = sum([168 * self.A for a in agent_list if a.l==1])
-        # for a in agent_list:
-        #     if a.l == 1: production += 168 * self.A
-        self.G += production
-        return production
-    
-    def wage_adjustment(self, agent_list:list[agent], imbalance:float):
-        '''
-        调整工资并不能刺激生产，需要补齐这个逻辑
-        '''
-        assert len(agent_list) > 0
-        sgn = 1 if imbalance > 0 else -1
-        
-        for a in agent_list:
-            a.w *= (1 + sgn * self.alpha_w * abs(imbalance) * np.random.uniform())
-    
-    def price_adjustment(self, imbalance:float):
-        
-        sgn = 1 if imbalance > 0 else -1
-        self.P *= (1 + sgn * self.alpha_p * abs(imbalance) * np.random.uniform())
-        return self.P
-    
 class market:
     def __init__(self, ) -> None:
         pass
@@ -138,25 +33,15 @@ class market:
     
 
 def simulation(config:Configuration, event=False, intervention=False):
-    '''
-    one episode of simulation
-    '''
+    '''one episode of simulation'''
     random.seed(config.seed)
     np.random.seed(config.seed)
     
     M = market()
     F = firm(A=config.A, alpha_w=config.alpha_w, alpha_p=config.alpha_p)
-    B = bank(rn=config.rn, pi_t=config.pi_t, un=config.un, alpha_pi=config.alpha_pi, alpha_u=config.alpha_u)
-    
-    agents = [agent(id=i, 
-                    pw=np.random.uniform(config.pw_low, config.pw_high), 
-                    pc=np.random.uniform(config.pc_low, config.pc_high), 
-                    gamma=config.gamma, 
-                    beta=config.gamma) for i in range(config.num_agents)]
+    B = bank(rn=config.rn, pi_t=config.pi_t, un=config.un, alpha_pi=config.alpha_pi, alpha_u=config.alpha_u, num_agents=config.num_agents)
+    agents = init_agents(config)
 
-    for a in agents:
-        a.w = beta_dist()      # initial hourly wage
-        B.deposits[a.id] = 0.  # initial deposit
     F.P = np.mean([a.w for a in agents]) # t=0 initial price
     unem_rate = 0.
     infla_rate = 0.
@@ -179,8 +64,6 @@ def simulation(config:Configuration, event=False, intervention=False):
         }
     
     for t in range(1, config.num_time_steps+1):
-        
-        
         
         ################ 事 件 开 始 ################
         # 增加失业
@@ -211,7 +94,7 @@ def simulation(config:Configuration, event=False, intervention=False):
         production = F.produce(agents) # production
         
         
-        wages = pay_wage(agents)
+        wages = F.pay_wage(agents)
         taxes = taxation(wages)
         # print(wages[:10], taxes[:10], '\n\n')
         wages_after_tax = [w - t for w, t in zip(wages, taxes)]
@@ -221,7 +104,7 @@ def simulation(config:Configuration, event=False, intervention=False):
             
             ################ 干 预 开 始 ################
             if t >= 550 and t <= 900 and intervention:
-                B.deposit(a.id, w + sum(taxes)/config.num_agents + 0.02*B.deposits[a.id]) # redistribution
+                B.deposit(a.id, w + sum(taxes)/config.num_agents + 0.01*B.deposits[a.id]) # redistribution
             else:
                 B.deposit(a.id, w + sum(taxes)/config.num_agents) # redistribution
             ################ 干 预 结 束 ################

@@ -1,25 +1,14 @@
 import numpy as np
 from config import Configuration
+from src.agent import agent
 
-def beta_dist(size=1):
-    '''
-    truncated beta distribution for generating hourly wage
-    '''
-    alpha, beta = 1.5, 2
-    s = np.random.beta(alpha, beta, size) * 500
-    if s <= 500/168:
-        return 500/168
-    return s[0]
 
-def pay_wage(agent_list:list):
-    wages = []
-    for a in agent_list:
-        if a.l:
-            # a.z = a.w * 168   # monthly income
-            wages.append(a.w * 168)
-        else:
-            wages.append(0.)
-    return wages
+def init_agents(config:Configuration) -> list[agent]:
+    return [agent(id=i, 
+                  pw=np.random.uniform(config.pw_low, config.pw_high), 
+                  pc=np.random.uniform(config.pc_low, config.pc_high), 
+                  gamma=config.gamma, 
+                  beta=config.gamma) for i in range(config.num_agents)]
 
 def taxation(wages:list[float]):
     '''
@@ -298,6 +287,10 @@ def plot_log(img_name:str, log:dict, config:Configuration):
     # plt.show()
 
 if __name__ == '__main__':
+    import matplotlib.pyplot as plt
     # taxes = taxation([4500, 21000, 57000, 115000, 180000, 300000, 700000])
     # print(taxes)
-    pass
+    config = Configuration()
+    agents = init_agents(config)
+    plt.hist([a.w for a in agents], bins=20)
+    plt.show()
