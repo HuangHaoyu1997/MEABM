@@ -5,7 +5,7 @@ image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 img_base64 = base64.b64encode(image_rgb.tobytes()).decode('utf-8')
 
 # OpenAI API Key
-api_key = "sk-proj-pkqVRU3aNsKQey6RZk0cT3BlbkFJF7O3g5nvhs0iv3akmYok"
+api_key = None
 headers = {
     "Content-Type": "application/json",
     "Authorization": f"Bearer {api_key}"
