@@ -75,8 +75,8 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
     for i in range(3):
         for j in range(4):
             axs[i, j].set_xlabel('Time / Month'); axs[i, j].grid()
-            axs[i, j].axvline(x=200, color='r', linestyle='--')
-            axs[i, j].axvline(x=400, color='r', linestyle='--')
+            axs[i, j].axvline(x=config.event_start, color='r', linestyle='--')
+            axs[i, j].axvline(x=config.event_end, color='r', linestyle='--')
             
     
     prices = np.array([[log[key]['price'] for key in log.keys()] for log in logs])
