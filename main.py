@@ -78,13 +78,13 @@ def simulation(config:Configuration, event=False, intervention=False):
         #             work_state.append(a.l)
         
         if event:
-            if t == 200:
+            if t == config.event_start:
                 a_pw = [a.pw for a in agents]
 
-            if t >= 200 and t <= 400:
+            if t >= config.event_start and t <= config.event_end:
                 for a, pw in zip(agents, a_pw):
-                    # a.pw = 0.1 ** (1/400) * a.pw # 在t=900时，就业意愿下降到t=500时的25%
-                    a.pw = (0.8 ** (1/(400-200))) ** (t-200) * pw
+                    # a.pw = 0.1 ** (1/300) * a.pw # 在t=900时，就业意愿下降到t=500时的25%
+                    a.pw = (0.6 ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * pw
             work_state = [a.work_decision() for a in agents] # work decision
         else:
             work_state = [a.work_decision() for a in agents] # work decision
@@ -101,8 +101,8 @@ def simulation(config:Configuration, event=False, intervention=False):
             # print(t, a.id, w, sum(taxes), w + sum(taxes)/config.num_agents)
             
             ################ 干 预 开 始 ################
-            if t >= 200 and t <= 600 and intervention:
-                B.deposit(a.id, w + sum(taxes)/config.num_agents + 0.02*B.deposits[a.id]) # redistribution
+            if t >= config.intervent_start and t <= config.intervent_end and intervention:
+                B.deposit(a.id, w + sum(taxes)/config.num_agents + 1000) # 0.04*B.deposits[a.id] redistribution
             else:
                 B.deposit(a.id, w + sum(taxes)/config.num_agents) # redistribution
             ################ 干 预 结 束 ################
