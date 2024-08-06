@@ -38,8 +38,17 @@ def simulation(config:Configuration, event=False, intervention=False):
     np.random.seed(config.seed)
     
     M = market()
-    F = firm(A=config.A, alpha_w=config.alpha_w, alpha_p=config.alpha_p)
-    B = bank(rn=config.rn, pi_t=config.pi_t, un=config.un, alpha_pi=config.alpha_pi, alpha_u=config.alpha_u, num_agents=config.num_agents)
+    F = firm(A=config.A, 
+             alpha_w=config.alpha_w, 
+             alpha_p=config.alpha_p)
+    B = bank(rn=config.rn, 
+             pi_t=config.pi_t, 
+             un=config.un, 
+             alpha_pi=config.alpha_pi, 
+             alpha_u=config.alpha_u, 
+             num_agents=config.num_agents, 
+             rate_min=config.r_min,
+             )
     agents = init_agents(config)
 
     F.P = np.mean([a.w for a in agents]) # t=0 initial price
@@ -102,7 +111,7 @@ def simulation(config:Configuration, event=False, intervention=False):
             
             ################ 干 预 开 始 ################
             if t >= config.intervent_start and t <= config.intervent_end and intervention:
-                B.deposit(a.id, w + sum(taxes)/config.num_agents + 1000) # 0.04*B.deposits[a.id] redistribution
+                B.deposit(a.id, w + sum(taxes)/config.num_agents + 1500) # 0.04*B.deposits[a.id] redistribution
             else:
                 B.deposit(a.id, w + sum(taxes)/config.num_agents) # redistribution
             ################ 干 预 结 束 ################

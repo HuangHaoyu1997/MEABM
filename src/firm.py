@@ -5,7 +5,7 @@ from src.agent import agent
 class firm:
     def __init__(self, A:float, alpha_w:float, alpha_p:float):
         self.A = A # universal productivity
-        self.G = 5000 # quantity of essential goods
+        self.G = 0 # quantity of essential goods
         self.P = 0 # price of essential goods
         self.alpha_w = alpha_w # wage adjustment parameter
         self.alpha_p = alpha_p # price adjustment parameter

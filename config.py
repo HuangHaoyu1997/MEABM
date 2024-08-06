@@ -4,7 +4,7 @@ class Configuration:
     ##           干 预 参 数           ##
     #####################################
     event_start = 200
-    event_end = 250
+    event_end = 350
     intervent_start = 200
     intervent_end = 600
     
@@ -30,8 +30,9 @@ class Configuration:
     rn = 0.05 # 0.01         # natural interest rate 自然利率
     pi_t = 0.1 # 0.02        # target inflation rate 目标通膨率
     un = 0.2 # 0.04          # natural unemployment rate 自然失业率
-    alpha_pi = 0.5
+    alpha_pi = 0.2
     alpha_u = 1 - alpha_pi
+    r_min = -0.05            # minimal inter
     
     
     #####################################

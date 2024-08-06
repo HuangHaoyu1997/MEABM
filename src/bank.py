@@ -4,13 +4,14 @@ class bank:
     '''
     central bank
     '''
-    def __init__(self, rn:float, pi_t:float, un:float, alpha_pi:float, alpha_u:float, num_agents:int):
+    def __init__(self, rn:float, pi_t:float, un:float, alpha_pi:float, alpha_u:float, num_agents:int, rate_min:float):
         self.rn = rn        # natural interest rate, constant value
         self.pi_t = pi_t    # target inflation rate, constant value
         self.un = un        # natural unemployment rate, constant value
         self.rate = rn      # initial interest rate = natural rate
         self.alpha_pi = alpha_pi
         self.alpha_u = alpha_u
+        self.rate_min = rate_min # minimal interest rate
         self.deposits = {i:0. for i in range(num_agents)} # 注意，id从0开始编号，可能需要修改
     
     def interest(self, agent_list:list[agent],):
@@ -36,6 +37,6 @@ class bank:
         Taylor rule for interest rate adjustment
         
         '''
-        rate_after = max(self.rn + self.pi_t + self.alpha_pi * (inflation_rate - self.pi_t) + self.alpha_u * (self.un - unemployment_rate), -0.05)
+        rate_after = max(self.rn + self.pi_t + self.alpha_pi * (inflation_rate - self.pi_t) + self.alpha_u * (self.un - unemployment_rate), self.rate_min)
         self.rate = rate_after
         return rate_after
