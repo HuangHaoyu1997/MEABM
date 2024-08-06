@@ -44,7 +44,7 @@ class Configuration:
     pw_low = 0.60
     pw_high = 0.95
     pc_low = 0.1
-    pc_high = 0.2
+    pc_high = 0.4
     
     pw_delta = 0.3
-    pc_delta = 0.001
+    pc_delta = 0.005

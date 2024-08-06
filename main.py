@@ -1,35 +1,11 @@
 import numpy as np
 import random
-from utils import taxation, inflation, GDP, unemployment, init_agents
+from utils import taxation, inflation, GDP, unemployment, init_agents, imbalance
 from copy import deepcopy
 from config import Configuration
 from src.agent import agent
 from src.firm import firm
-from src.bank import bank
-
-
-class market:
-    def __init__(self, ) -> None:
-        pass
-    
-    def total_intended_demand(self, agent_list:list[agent], P:float, deposits:dict) -> float:
-        '''
-        社会总预期需求 = 消费比例 * 储蓄量 / 价格
-        '''
-        cnt = np.sum([a.pc * deposits[a.id] / P for a in agent_list])
-        return cnt
-    
-    def imbalance(self, agent_list:list[agent], P:float, G:float, deposits:dict) -> float:
-        '''
-        计算 预期需求与实际产量之间的不均衡
-        >0, 需求 > 产量
-        <0, 需求 < 产量
-        '''
-        D = self.total_intended_demand(agent_list, P, deposits)
-        # print('imbalance:', D, firm.G)
-        phi_bar = (D - G) / max(D, G)
-        return phi_bar
-    
+from src.bank import bank   
     
 
 def simulation(config:Configuration, event=False, intervention=False):
@@ -37,7 +13,6 @@ def simulation(config:Configuration, event=False, intervention=False):
     random.seed(config.seed)
     np.random.seed(config.seed)
     
-    M = market()
     F = firm(A=config.A, 
              alpha_w=config.alpha_w, 
              alpha_p=config.alpha_p)
@@ -75,8 +50,8 @@ def simulation(config:Configuration, event=False, intervention=False):
     for t in range(1, config.num_time_steps+1):
         
         ################ 事 件 开 始 ################
-        # 增加失业
-        # 产量减少
+        # 降低就业意愿
+        # 产量减少，工资收入减少
         # GDP下降
         
         # if event:
@@ -134,7 +109,7 @@ def simulation(config:Configuration, event=False, intervention=False):
         #############################
         # price and wage adjustment #
         #############################
-        phi_bar = M.imbalance(agents, F.P, F.G, B.deposits)
+        phi_bar = imbalance(agents, F.P, F.G, B.deposits)
         F.wage_adjustment(agents, phi_bar)
         F.price_adjustment(phi_bar)
         

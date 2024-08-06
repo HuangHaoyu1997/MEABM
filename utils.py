@@ -68,6 +68,24 @@ def unemployment(log:dict):
         unemployment_cnt += state.count(0)
     return unemployment_cnt / (12 * len(state))
 
+def total_intended_demand(agent_list:list[agent], P:float, deposits:dict) -> float:
+    '''
+    社会总预期需求 = 消费比例 * 储蓄量 / 价格
+    '''
+    cnt = np.sum([a.pc * deposits[a.id] / P for a in agent_list])
+    return cnt
+
+def imbalance(agent_list:list[agent], P:float, G:float, deposits:dict) -> float:
+    '''
+    计算 预期需求与实际产量之间的不均衡
+    >0, 需求 > 产量
+    <0, 需求 < 产量
+    '''
+    D = total_intended_demand(agent_list, P, deposits)
+    # print('imbalance:', D, firm.G)
+    phi_bar = (D - G) / max(D, G)
+    return phi_bar
+
 def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Configuration):
     import matplotlib.pyplot as plt
     fig, axs = plt.subplots(3, 4, figsize=(24, 16))
