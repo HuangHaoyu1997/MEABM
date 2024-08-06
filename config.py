@@ -5,6 +5,8 @@ class Configuration:
     #####################################
     event_start = 200
     event_end = 250
+    intervent_start = 200
+    intervent_end = 600
     
     #####################################
     ##           仿 真 参 数           ##

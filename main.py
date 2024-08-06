@@ -101,7 +101,7 @@ def simulation(config:Configuration, event=False, intervention=False):
             # print(t, a.id, w, sum(taxes), w + sum(taxes)/config.num_agents)
             
             ################ 干 预 开 始 ################
-            if t >= 200 and t <= 600 and intervention:
+            if t >= config.intervent_start and t <= config.intervent_end and intervention:
                 B.deposit(a.id, w + sum(taxes)/config.num_agents + 1000) # 0.04*B.deposits[a.id] redistribution
             else:
                 B.deposit(a.id, w + sum(taxes)/config.num_agents) # redistribution
