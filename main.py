@@ -53,7 +53,7 @@ def simulation(config:Configuration, event=False, intervention=False):
         'wage': [a.w for a in agents],
         'price': F.P, 
         'rate': B.rate, 
-        'production': 0,
+        'production': F.G,
         'imbalance': 0,
         'inflation_rate': infla_rate,
         'taxes': 0,
@@ -84,13 +84,13 @@ def simulation(config:Configuration, event=False, intervention=False):
             if t >= 200 and t <= 400:
                 for a, pw in zip(agents, a_pw):
                     # a.pw = 0.1 ** (1/400) * a.pw # 在t=900时，就业意愿下降到t=500时的25%
-                    a.pw = (0.2 ** (1/(400-200))) ** (t-200) * pw
+                    a.pw = (0.8 ** (1/(400-200))) ** (t-200) * pw
             work_state = [a.work_decision() for a in agents] # work decision
         else:
             work_state = [a.work_decision() for a in agents] # work decision
         ################ 事 件 结 束 ################
         
-        production = F.produce(agents) # production
+        production = F.produce(agents) # 生产
         
         wages = F.pay_wage(agents)
         taxes = taxation(wages)
@@ -101,7 +101,7 @@ def simulation(config:Configuration, event=False, intervention=False):
             # print(t, a.id, w, sum(taxes), w + sum(taxes)/config.num_agents)
             
             ################ 干 预 开 始 ################
-            if t >= 200 and t <= 400 and intervention:
+            if t >= 200 and t <= 600 and intervention:
                 B.deposit(a.id, w + sum(taxes)/config.num_agents + 0.02*B.deposits[a.id]) # redistribution
             else:
                 B.deposit(a.id, w + sum(taxes)/config.num_agents) # redistribution
