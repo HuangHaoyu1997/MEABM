@@ -99,60 +99,56 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
     
     prices = np.array([[log[key]['price'] for key in log.keys()] for log in logs])
     prices_mean = np.mean(prices, axis=0)
-    prices_std = np.std(prices, axis=0)
     x = list(range(len(prices[0])))
-    prices_min = prices_mean - prices_std
-    prices_max = prices_mean + prices_std
+    prices_min = prices_mean - np.std(prices, axis=0)
+    prices_max = prices_mean + np.std(prices, axis=0)
     
     
     rates = np.array([[log[key]['rate'] for key in log.keys()] for log in logs])
     rates_mean = np.mean(rates, axis=0)
-    rates_std = np.std(rates, axis=0)
-    rates_min = rates_mean - rates_std
-    rates_max = rates_mean + rates_std
+    rates_min = rates_mean - np.std(rates, axis=0)
+    rates_max = rates_mean + np.std(rates, axis=0)
     
     um_rates = [[1-log[key]['unemployment_rate'] for key in log.keys()] for log in logs]
     um_rates_mean = np.mean(um_rates, axis=0)
-    um_rates_std = np.std(um_rates, axis=0)
-    um_rates_min = um_rates_mean - um_rates_std
-    um_rates_max = um_rates_mean + um_rates_std
+    um_rates_min = um_rates_mean - np.std(um_rates, axis=0)
+    um_rates_max = um_rates_mean + np.std(um_rates, axis=0)
     
     inflation_rates = [[log[key]['inflation_rate'] for key in log.keys()] for log in logs]
     inflation_rates_mean = np.mean(inflation_rates, axis=0)
-    inflation_rates_std = np.std(inflation_rates, axis=0)
-    inflation_rates_min = inflation_rates_mean - inflation_rates_std
-    inflation_rates_max = inflation_rates_mean + inflation_rates_std
+    inflation_rates_min = inflation_rates_mean - np.std(inflation_rates, axis=0)
+    inflation_rates_max = inflation_rates_mean + np.std(inflation_rates, axis=0)
     
     
     imbas = [[log[key]['imbalance'] for key in log.keys()] for log in logs]
     imbas_mean = np.mean(imbas, axis=0)
-    imbas_std = np.std(imbas, axis=0)
-    imbas_min = imbas_mean - imbas_std
-    imbas_max = imbas_mean + imbas_std
+    imbas_min = imbas_mean - np.std(imbas, axis=0)
+    imbas_max = imbas_mean + np.std(imbas, axis=0)
+    
+    capitals = [[log[key]['capital'] for key in log.keys()] for log in logs]
+    capitals_mean = np.mean(capitals, axis=0)
+    capitals_min = capitals_mean - np.std(capitals, axis=0)
+    capitals_max = capitals_mean + np.std(capitals, axis=0)
     
     productions = [[log[key]['production'] for key in log.keys()] for log in logs]
     productions_mean = np.mean(productions, axis=0)
-    productions_std = np.std(productions, axis=0)
-    productions_min = productions_mean - productions_std
-    productions_max = productions_mean + productions_std
+    productions_min = productions_mean - np.std(productions, axis=0)
+    productions_max = productions_mean + np.std(productions, axis=0)
     
     GDPs = [[log[key]['GDP'] for key in log.keys()] for log in logs]
     GDPs_mean = np.mean(GDPs, axis=0)
-    GDPs_std = np.std(GDPs, axis=0)
-    GDPs_min = GDPs_mean - GDPs_std
-    GDPs_max = GDPs_mean + GDPs_std
+    GDPs_min = GDPs_mean - np.std(GDPs, axis=0)
+    GDPs_max = GDPs_mean + np.std(GDPs, axis=0)
     
     deposits = [[total_deposit(log[key]['deposit'])/config.num_agents for key in log.keys()] for log in logs]
     deposits_mean = np.mean(deposits, axis=0)
-    deposits_std = np.std(deposits, axis=0)
-    deposits_min = deposits_mean - deposits_std
-    deposits_max = deposits_mean + deposits_std
+    deposits_min = deposits_mean - np.std(deposits, axis=0)
+    deposits_max = deposits_mean + np.std(deposits, axis=0)
     
     avg_wages = [[log[key]['avg_wage'] for key in log.keys()] for log in logs]
     avg_wages_mean = np.mean(avg_wages, axis=0)
-    avg_wages_std = np.std(avg_wages, axis=0)
-    avg_wages_min = avg_wages_mean - avg_wages_std
-    avg_wages_max = avg_wages_mean + avg_wages_std
+    avg_wages_min = avg_wages_mean - np.std(avg_wages, axis=0)
+    avg_wages_max = avg_wages_mean + np.std(avg_wages, axis=0)
     
     axs[0, 0].plot(x, prices_mean); axs[0, 0].set_ylabel('Price', fontsize=14)
     axs[0, 0].fill_between(x, prices_min, prices_max, color='red', alpha=0.3)
@@ -169,6 +165,9 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
     axs[1, 0].plot(x, imbas_mean); axs[1, 0].set_ylabel('Imbalance: Demand - Supply', fontsize=14)
     axs[1, 0].fill_between(x, imbas_min, imbas_max, color='red', alpha=0.3)
     
+    axs[1, 1].plot(x, capitals_mean); axs[1, 1].set_ylabel('Capital', fontsize=14)
+    axs[1, 1].fill_between(x, capitals_min, capitals_max, color='red', alpha=0.3)
+    
     axs[1, 2].plot(x, productions_mean); axs[1, 2].set_ylabel('Production', fontsize=14)
     axs[1, 2].fill_between(x, productions_min, productions_max, color='red', alpha=0.3)
     
@@ -183,59 +182,55 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
     if logs_compare is not None:
         prices = np.array([[log[key]['price'] for key in log.keys()] for log in logs_compare])
         prices_mean = np.mean(prices, axis=0)
-        prices_std = np.std(prices, axis=0)
         x = list(range(len(prices[0])))
-        prices_min = prices_mean - prices_std
-        prices_max = prices_mean + prices_std
+        prices_min = prices_mean - np.std(prices, axis=0)
+        prices_max = prices_mean + np.std(prices, axis=0)
         
         
         rates = np.array([[log[key]['rate'] for key in log.keys()] for log in logs_compare])
         rates_mean = np.mean(rates, axis=0)
-        rates_std = np.std(rates, axis=0)
-        rates_min = rates_mean - rates_std
-        rates_max = rates_mean + rates_std
+        rates_min = rates_mean - np.std(rates, axis=0)
+        rates_max = rates_mean + np.std(rates, axis=0)
         
         um_rates = [[1-log[key]['unemployment_rate'] for key in log.keys()] for log in logs_compare]
         um_rates_mean = np.mean(um_rates, axis=0)
-        um_rates_std = np.std(um_rates, axis=0)
-        um_rates_min = um_rates_mean - um_rates_std
-        um_rates_max = um_rates_mean + um_rates_std
+        um_rates_min = um_rates_mean - np.std(um_rates, axis=0)
+        um_rates_max = um_rates_mean + np.std(um_rates, axis=0)
         
         inflation_rates = [[log[key]['inflation_rate'] for key in log.keys()] for log in logs_compare]
         inflation_rates_mean = np.mean(inflation_rates, axis=0)
-        inflation_rates_std = np.std(inflation_rates, axis=0)
-        inflation_rates_min = inflation_rates_mean - inflation_rates_std
-        inflation_rates_max = inflation_rates_mean + inflation_rates_std
+        inflation_rates_min = inflation_rates_mean - np.std(inflation_rates, axis=0)
+        inflation_rates_max = inflation_rates_mean + np.std(inflation_rates, axis=0)
         
         imbas = [[log[key]['imbalance'] for key in log.keys()] for log in logs_compare]
         imbas_mean = np.mean(imbas, axis=0)
-        imbas_std = np.std(imbas, axis=0)
-        imbas_min = imbas_mean - imbas_std
-        imbas_max = imbas_mean + imbas_std
+        imbas_min = imbas_mean - np.std(imbas, axis=0)
+        imbas_max = imbas_mean + np.std(imbas, axis=0)
         
+        capitals = [[log[key]['capital'] for key in log.keys()] for log in logs_compare]
+        capitals_mean = np.mean(capitals, axis=0)
+        capitals_min = capitals_mean - np.std(capitals, axis=0)
+        capitals_max = capitals_mean + np.std(capitals, axis=0)
+    
         productions = [[log[key]['production'] for key in log.keys()] for log in logs_compare]
         productions_mean = np.mean(productions, axis=0)
-        productions_std = np.std(productions, axis=0)
-        productions_min = productions_mean - productions_std
-        productions_max = productions_mean + productions_std
+        productions_min = productions_mean - np.std(productions, axis=0)
+        productions_max = productions_mean + np.std(productions, axis=0)
         
         GDPs = [[log[key]['GDP'] for key in log.keys()] for log in logs_compare]
         GDPs_mean = np.mean(GDPs, axis=0)
-        GDPs_std = np.std(GDPs, axis=0)
-        GDPs_min = GDPs_mean - GDPs_std
-        GDPs_max = GDPs_mean + GDPs_std
+        GDPs_min = GDPs_mean - np.std(GDPs, axis=0)
+        GDPs_max = GDPs_mean + np.std(GDPs, axis=0)
         
         deposits = [[total_deposit(log[key]['deposit'])/config.num_agents for key in log.keys()] for log in logs_compare]
         deposits_mean = np.mean(deposits, axis=0)
-        deposits_std = np.std(deposits, axis=0)
-        deposits_min = deposits_mean - deposits_std
-        deposits_max = deposits_mean + deposits_std
+        deposits_min = deposits_mean - np.std(deposits, axis=0)
+        deposits_max = deposits_mean + np.std(deposits, axis=0)
         
         avg_wages = [[log[key]['avg_wage'] for key in log.keys()] for log in logs_compare]
         avg_wages_mean = np.mean(avg_wages, axis=0)
-        avg_wages_std = np.std(avg_wages, axis=0)
-        avg_wages_min = avg_wages_mean - avg_wages_std
-        avg_wages_max = avg_wages_mean + avg_wages_std
+        avg_wages_min = avg_wages_mean - np.std(avg_wages, axis=0)
+        avg_wages_max = avg_wages_mean + np.std(avg_wages, axis=0)
         
         axs[0, 0].plot(x, prices_mean); axs[0, 0].set_ylabel('Price', fontsize=14)
         axs[0, 0].fill_between(x, prices_min, prices_max, color='gray', alpha=0.3)
@@ -252,6 +247,9 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
         axs[1, 0].plot(x, imbas_mean); axs[1, 0].set_ylabel('Imbalance: Demand - Supply', fontsize=14)
         axs[1, 0].fill_between(x, imbas_min, imbas_max, color='gray', alpha=0.3)
         
+        axs[1, 1].plot(x, capitals_mean); axs[1, 1].set_ylabel('Capital', fontsize=14)
+        axs[1, 1].fill_between(x, capitals_min, capitals_max, color='gray', alpha=0.3)
+    
         axs[1, 2].plot(x, productions_mean); axs[1, 2].set_ylabel('Production', fontsize=14)
         axs[1, 2].fill_between(x, productions_min, productions_max, color='gray', alpha=0.3)
         

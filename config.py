@@ -32,7 +32,7 @@ class Configuration:
     un = 0.2 # 0.04          # natural unemployment rate 自然失业率
     alpha_pi = 0.2
     alpha_u = 1 - alpha_pi
-    r_min = -0.05            # minimal inter
+    r_min = 0            # minimal inter
     
     
     #####################################

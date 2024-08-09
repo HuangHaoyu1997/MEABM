@@ -45,6 +45,7 @@ def simulation(config:Configuration, event=False, intervention=False):
         'deposit': {i: 0.0 for i in range(config.num_agents)},
         'avg_wage': sum([a.w for a in agents])/config.num_agents,
         'GDP': Nominal_GDP,
+        'capital': F.capital,
         }
     
     for t in range(1, config.num_time_steps+1):
@@ -75,10 +76,8 @@ def simulation(config:Configuration, event=False, intervention=False):
         ################ 事 件 结 束 ################
         
         production = F.produce(agents) # 生产
-        
-        wages = F.pay_wage(agents)
-        taxes = taxation(wages)
-        # print(wages[:10], taxes[:10], '\n\n')
+        wages = F.pay_wage(agents)     # 支付工资
+        taxes = taxation(wages)        # 计算个税
         wages_after_tax = [w - t for w, t in zip(wages, taxes)]
         for a, w in zip(agents, wages_after_tax):
             a.z = w # update monthly income
@@ -86,11 +85,12 @@ def simulation(config:Configuration, event=False, intervention=False):
             
             ################ 干 预 开 始 ################
             if t >= config.intervent_start and t <= config.intervent_end and intervention:
-                B.deposit(a.id, w + sum(taxes)/config.num_agents + 500) # 0.04*B.deposits[a.id] redistribution
+                B.deposit(a.id, w + sum(taxes)/config.num_agents + 900) # 0.04*B.deposits[a.id] redistribution
             else:
                 B.deposit(a.id, w + sum(taxes)/config.num_agents) # redistribution
             ################ 干 预 结 束 ################
         
+        phi_bar = imbalance(agents, F.P, F.G, B.deposits)
         
         ###########################################
         # consumption in random order 随机顺序消费 #
@@ -98,18 +98,22 @@ def simulation(config:Configuration, event=False, intervention=False):
         random_list = np.arange(config.num_agents)
         np.random.shuffle(random_list)
         tmp_G = deepcopy(F.G)
+        total_consume_amount, total_consume_quantity = 0., 0.
         for idx in random_list: 
             a = agents[idx]
             demand = a.pc * B.deposits[a.id] / F.P # intended demand
             demand_actual = min(demand, tmp_G) # actual demand quanity
             consump_actual = demand_actual * F.P # actual consumption
+            total_consume_quantity += demand_actual
             B.deposits[a.id] -= consump_actual # update deposit
             tmp_G -= demand_actual # update inventory of essential goods
-        
+            total_consume_amount += consump_actual
+        F.capital += total_consume_amount
+        # print(t, '总消费量: ', total_consume_quantity)
         #############################
         # price and wage adjustment #
         #############################
-        phi_bar = imbalance(agents, F.P, F.G, B.deposits)
+        
         F.wage_adjustment(agents, phi_bar)
         F.price_adjustment(phi_bar)
         
@@ -138,8 +142,9 @@ def simulation(config:Configuration, event=False, intervention=False):
             'taxes': sum(taxes),
             'unemployment_rate': unem_rate,
             'deposit': deepcopy(B.deposits),
-            'avg_wage': sum([a.w for a in agents])/config.num_agents,
+            'avg_wage': sum([a.w for a in agents])/sum([1 if a.l else 0 for a in agents]),
             'GDP': Nominal_GDP,
+            'capital': F.capital,
             }
         
         if t % 6 == 0 and t > 60:

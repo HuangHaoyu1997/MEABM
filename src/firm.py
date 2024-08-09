@@ -5,10 +5,11 @@ from src.agent import agent
 class firm:
     def __init__(self, A:float, alpha_w:float, alpha_p:float):
         self.A = A # universal productivity
-        self.G = 0 # quantity of essential goods
+        self.G = 10000 # quantity of essential goods
         self.P = 0 # price of essential goods
         self.alpha_w = alpha_w # wage adjustment parameter
         self.alpha_p = alpha_p # price adjustment parameter
+        self.capital = 0 # initial capital
 
     def produce(self, agent_list:list[agent],):
         '''
@@ -41,4 +42,5 @@ class firm:
                 wages.append(a.w * 168)
             else:
                 wages.append(0.)
+        self.capital -= sum(wages)
         return wages
