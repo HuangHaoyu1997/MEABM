@@ -8,7 +8,9 @@ def init_agents(config:Configuration) -> list[agent]:
                   pw=np.random.uniform(config.pw_low, config.pw_high), 
                   pc=np.random.uniform(config.pc_low, config.pc_high), 
                   gamma=config.gamma, 
-                  beta=config.gamma) for i in range(config.num_agents)]
+                  beta=config.gamma,
+                  pw_delta=config.pw_delta,
+                  pc_delta=config.pc_delta,) for i in range(config.num_agents)]
 
 def taxation(wages:list[float]):
     '''

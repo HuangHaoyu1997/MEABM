@@ -149,22 +149,7 @@ def simulation(config:Configuration, event=False, intervention=False):
         
         if t % 6 == 0 and t > 60:
             for a in agents:
-                last_period_deposit = sum([log[tt]['deposit'][a.id]*(1+log[tt]['rate']) for tt in range(t-12+1, t-6+1)])
-                this_period_deposit = sum([log[tt]['deposit'][a.id]*(1+log[tt]['rate']) for tt in range(t-6+1, t+1)])
-                sgn_deposit = -1 if this_period_deposit >= last_period_deposit else 1
-                
-                last_period_wage = sum([log[tt]['wage'][a.id] for tt in range(t-12+1, t-6+1)])
-                this_period_wage = sum([log[tt]['wage'][a.id] for tt in range(t-6+1, t+1)])
-                sgn_wage = 1 if this_period_wage >= last_period_wage else -1
-                
-                last_period_price = sum([log[tt]['price'] for tt in range(t-12+1, t-6+1)])
-                this_period_price = sum([log[tt]['price'] for tt in range(t-6+1, t+1)])
-                sgn_price = -1 if this_period_price >= last_period_price else 1
-                
-                a.pw += sgn_deposit * np.random.uniform() * config.pw_delta # 存款多了减少工作意愿
-                a.pw += sgn_wage * np.random.uniform() * config.pw_delta    # 工资多了增加工作意愿
-                a.pc += sgn_price * np.random.uniform() * config.pc_delta   # 价格上涨减少消费意愿
-                a.pc += sgn_deposit * np.random.uniform() * config.pc_delta # 存款多了增加消费意愿
+                a.adjust(t, log)
 
     return log
 

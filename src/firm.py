@@ -24,12 +24,20 @@ class firm:
         return production
     
     def wage_adjustment(self, agent_list:list[agent], imbalance:float):
+        '''
+        imbalance>0, 需求 > 产量, 提高工资
+        imbalance<0, 需求 < 产量, 降低工资
+        '''
         assert len(agent_list) > 0
         sgn = 1 if imbalance > 0 else -1
         for a in agent_list:
             a.w *= (1 + sgn * self.alpha_w * abs(imbalance) * np.random.uniform())
     
     def price_adjustment(self, imbalance:float):
+        '''
+        imbalance>0, 需求 > 产量, 提高价格
+        imbalance<0, 需求 < 产量, 降低价格
+        '''
         sgn = 1 if imbalance > 0 else -1
         self.P *= (1 + sgn * self.alpha_p * abs(imbalance) * np.random.uniform())
         return self.P
