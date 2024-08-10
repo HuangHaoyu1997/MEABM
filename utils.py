@@ -274,31 +274,32 @@ def plot_log(img_name:str, log:dict, config:Configuration):
     for i in range(3):
         for j in range(4):
             axs[i, j].set_xlabel('Time / Month'); axs[i, j].grid()
+            axs[i, j].axvline(x=config.event_start, color='r', linestyle='--')
+            axs[i, j].axvline(x=config.event_end, color='r', linestyle='--')
     
     price_history = [log[key]['price'] for key in log.keys()]
     rate_history = [log[key]['rate'] for key in log.keys()]
+    um_rate_history = [1-log[key]['unemployment_rate'] for key in log.keys()]
+    inflation_history = [log[key]['inflation_rate'] for key in log.keys()]
     imba_history = [log[key]['imbalance'] for key in log.keys()]
+    capital_history = [log[key]['capital'] for key in log.keys()]
+    production_history = [log[key]['production'] for key in log.keys()]
+    GDP_history = [log[key]['GDP'] for key in log.keys()]
+    deposit_history = [total_deposit(log[key]['deposit'])/config.num_agents for key in log.keys()]
+    wage_history = [log[key]['avg_wage'] for key in log.keys()]
     taxes_history = [log[key]['taxes']/config.num_agents for key in log.keys()]
     
-    axs[0, 0].plot(price_history); axs[0, 0].set_ylabel('Price')
-    
-    axs[0, 1].plot(rate_history); axs[0, 1].set_ylabel('Interest rate')
-    
-    axs[0, 2].plot([1-log[key]['unemployment_rate'] for key in log.keys()]); axs[0, 2].set_ylabel('Employment rate')
-    
-    axs[0, 3].plot([log[key]['GDP'] for key in log.keys()]); axs[0, 3].set_ylabel('Nominal GDP')
-    
-    axs[1, 0].plot(imba_history); axs[1, 0].set_ylabel('Imbalance: Demand - Supply')
-    
-    axs[1, 1].plot(taxes_history); axs[1, 1].set_ylabel('Avg tax revenue per capita')
-    
-    axs[1, 2].plot([log[key]['production'] for key in log.keys()]); axs[1, 2].set_ylabel('Production')
-    
-    axs[2, 0].plot([total_deposit(log[key]['deposit'])/config.num_agents for key in log.keys()]); axs[2, 0].set_ylabel('Deposit per capita')
-    
-    axs[2, 1].plot([log[key]['avg_wage'] for key in log.keys()]); axs[2, 1].set_ylabel('Avg wage')
-    
-    axs[2, 2].plot([log[key]['inflation_rate'] for key in log.keys()]); axs[2, 2].set_ylabel('Inflation rate')
+    axs[0, 0].plot(price_history);      axs[0, 0].set_ylabel('Price', fontsize=14)
+    axs[0, 1].plot(rate_history);       axs[0, 1].set_ylabel('Interest rate', fontsize=14)
+    axs[0, 2].plot(um_rate_history);    axs[0, 2].set_ylabel('Employment rate', fontsize=14)
+    axs[0, 3].plot(inflation_history);  axs[0, 3].set_ylabel('Inflation rate', fontsize=14)
+    axs[1, 0].plot(imba_history);       axs[1, 0].set_ylabel('Imbalance: Demand - Supply', fontsize=14)
+    axs[1, 1].plot(capital_history);    axs[1, 1].set_ylabel('Capital', fontsize=14)
+    axs[1, 2].plot(production_history); axs[1, 2].set_ylabel('Production', fontsize=14)
+    axs[1, 3].plot(GDP_history);        axs[1, 3].set_ylabel('Nominal GDP', fontsize=14)
+    axs[2, 0].plot(deposit_history);    axs[2, 0].set_ylabel('Deposit per capita', fontsize=14)
+    axs[2, 1].plot(wage_history);       axs[2, 1].set_ylabel('Avg wage', fontsize=14)
+    axs[2, 2].plot(taxes_history);      axs[2, 2].set_ylabel('Avg tax revenue per capita', fontsize=14)
     
     plt.tight_layout()
     plt.savefig(img_name, dpi=300)

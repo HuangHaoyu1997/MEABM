@@ -3,13 +3,19 @@ import numpy as np
 from src.agent import agent
 
 class firm:
-    def __init__(self, A:float, alpha_w:float, alpha_p:float):
-        self.A = A # universal productivity
-        self.G = 10000 # quantity of essential goods
-        self.P = 0 # price of essential goods
-        self.alpha_w = alpha_w # wage adjustment parameter
-        self.alpha_p = alpha_p # price adjustment parameter
-        self.capital = 0 # initial capital
+    def __init__(self, 
+                 A:float, 
+                 alpha_w:float, 
+                 alpha_p:float, 
+                 init_good:float,
+                 init_cap:float,
+                 ):
+        self.A = A               # universal productivity
+        self.G = init_good       # quantity of essential goods
+        self.P = 0               # price of essential goods
+        self.alpha_w = alpha_w   # wage adjustment parameter
+        self.alpha_p = alpha_p   # price adjustment parameter
+        self.capital = init_cap  # initial capital
 
     def produce(self, agent_list:list[agent],):
         '''

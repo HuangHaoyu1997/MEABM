@@ -23,6 +23,8 @@ class Configuration:
     A = 1.0         # 生产率
     alpha_w = 0.10
     alpha_p = 0.10
+    init_good = 10000
+    init_cap = 0
     
     #####################################
     ##           银行模型参数           ##
@@ -42,9 +44,9 @@ class Configuration:
     beta = 0.5
     
     pw_low = 0.60
-    pw_high = 0.95
+    pw_high = 1.0
     pc_low = 0.1
     pc_high = 0.4
     
-    pw_delta = 0.3
-    pc_delta = 0.005
+    pw_delta = 0.15
+    pc_delta = 0.002
