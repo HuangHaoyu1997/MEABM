@@ -1,6 +1,9 @@
 import random
 import numpy as np
 
+def gauss_dist(mean_income, std_dev_income, num_samples=100):
+    return np.random.normal(mean_income, std_dev_income, num_samples)
+
 def beta_dist(size=1):
     '''
     truncated beta distribution for generating hourly wage

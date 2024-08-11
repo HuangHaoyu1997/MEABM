@@ -11,9 +11,9 @@ class Configuration:
     #####################################
     ##           仿 真 参 数           ##
     #####################################
-    seed = int(time()) # 123
+    seed = 124 # int(time()) # 123
     num_agents = 100
-    num_time_steps = 12 * 50
+    num_time_steps = 12 * 100
     
     
     #####################################
@@ -21,18 +21,18 @@ class Configuration:
     #####################################
     
     A = 1.0         # 生产率
-    alpha_w = 0.10
+    alpha_w = 0.05
     alpha_p = 0.10
-    init_good = 10000
-    init_cap = 0
+    init_good = 5000
+    init_cap = 1e7
     
     #####################################
     ##           银行模型参数           ##
     #####################################
-    rn = 0.05 # 0.01         # natural interest rate 自然利率
-    pi_t = 0.1 # 0.02        # target inflation rate 目标通膨率
-    un = 0.2 # 0.04          # natural unemployment rate 自然失业率
-    alpha_pi = 0.2
+    rn = 0.01 # 0.01         # natural interest rate 自然利率
+    pi_t = 0.02 # 0.02        # target inflation rate 目标通膨率
+    un = 0.04 # 0.04          # natural unemployment rate 自然失业率
+    alpha_pi = 0.5
     alpha_u = 1 - alpha_pi
     r_min = 0            # minimal inter
     
@@ -42,11 +42,15 @@ class Configuration:
     #####################################
     gamma = 0.5
     beta = 0.5
+    wage_mean = 80
+    wage_std = 20
     
     pw_low = 0.60
     pw_high = 1.0
     pc_low = 0.1
     pc_high = 0.4
     
-    pw_delta = 0.15
-    pc_delta = 0.002
+    pw_delta = 0.3
+    pc_delta = 0.005
+    
+    

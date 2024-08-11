@@ -1,16 +1,20 @@
 import numpy as np
 from config import Configuration
-from src.agent import agent
+from src.agent import agent, gauss_dist
 
 
 def init_agents(config:Configuration) -> list[agent]:
-    return [agent(id=i, 
+    agent_list = [agent(id=i, 
                   pw=np.random.uniform(config.pw_low, config.pw_high), 
                   pc=np.random.uniform(config.pc_low, config.pc_high), 
                   gamma=config.gamma, 
                   beta=config.gamma,
                   pw_delta=config.pw_delta,
                   pc_delta=config.pc_delta,) for i in range(config.num_agents)]
+    wages = gauss_dist(config.wage_mean, config.wage_std, config.num_agents)
+    for a, w in zip(agent_list, wages):
+        a.w = w
+    return agent_list
 
 def taxation(wages:list[float]):
     '''
@@ -288,7 +292,7 @@ def plot_log(img_name:str, log:dict, config:Configuration):
     deposit_history = [total_deposit(log[key]['deposit'])/config.num_agents for key in log.keys()]
     wage_history = [log[key]['avg_wage'] for key in log.keys()]
     taxes_history = [log[key]['taxes']/config.num_agents for key in log.keys()]
-    
+    wage_std_history = [np.std(log[key]['wage']) for key in log.keys()]
     axs[0, 0].plot(price_history);      axs[0, 0].set_ylabel('Price', fontsize=14)
     axs[0, 1].plot(rate_history);       axs[0, 1].set_ylabel('Interest rate', fontsize=14)
     axs[0, 2].plot(um_rate_history);    axs[0, 2].set_ylabel('Employment rate', fontsize=14)
@@ -300,7 +304,7 @@ def plot_log(img_name:str, log:dict, config:Configuration):
     axs[2, 0].plot(deposit_history);    axs[2, 0].set_ylabel('Deposit per capita', fontsize=14)
     axs[2, 1].plot(wage_history);       axs[2, 1].set_ylabel('Avg wage', fontsize=14)
     axs[2, 2].plot(taxes_history);      axs[2, 2].set_ylabel('Avg tax revenue per capita', fontsize=14)
-    
+    axs[2, 3].plot(wage_std_history);   axs[2, 3].set_ylabel('Wage std', fontsize=14)
     plt.tight_layout()
     plt.savefig(img_name, dpi=300)
     # plt.show()

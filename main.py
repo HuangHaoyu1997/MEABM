@@ -6,7 +6,7 @@ from config import Configuration
 from src.agent import agent
 from src.firm import firm
 from src.bank import bank   
-    
+from src.market import consumption
 
 def simulation(config:Configuration, event=False, intervention=False):
     '''one episode of simulation'''
@@ -93,35 +93,25 @@ def simulation(config:Configuration, event=False, intervention=False):
             else:
                 B.deposit(a.id, w + sum(taxes)/config.num_agents) # redistribution
             ################ 干 预 结 束 ################
-        if t % 6 == 0:
+        if t % 3 == 0:
             imba = imbalance(agents, F.P, F.G, B.deposits)
         
         ###########################################
         # consumption in random order 随机顺序消费 #
         ###########################################
-        random_list = np.arange(config.num_agents)
-        np.random.shuffle(random_list)
-        tmp_G = deepcopy(F.G)
-        total_consume_amount, total_consume_quantity = 0., 0.
-        for idx in random_list: 
-            a = agents[idx]
-            demand = a.pc * B.deposits[a.id] / F.P # intended demand
-            demand_actual = min(demand, tmp_G) # actual demand quanity
-            consump_actual = demand_actual * F.P # actual consumption
-            total_consume_quantity += demand_actual
-            B.deposits[a.id] -= consump_actual # update deposit
-            tmp_G -= demand_actual # update inventory of essential goods
-            total_consume_amount += consump_actual
-        F.capital += total_consume_amount
-        # print(t, '总消费量: ', total_consume_quantity)
+        total_consume_money, total_consume_quantity, deposits = consumption(config, agents, F.G, F.P, B.deposits)
+        F.capital += total_consume_money
+        # print(t, '总消费量: ', total_consume_money)
         #############################
         # price and wage adjustment #
         #############################
         
         F.wage_adjustment(agents, imba)
         F.price_adjustment(imba)
-        
-        F.G = tmp_G
+        F.G -= total_consume_quantity
+        print(B.deposits[1])
+        B.deposits = deposits
+        print(B.deposits[1], '\n')
         
         #####################
         # annual operation  #
@@ -133,7 +123,7 @@ def simulation(config:Configuration, event=False, intervention=False):
             B.rate_adjustment(unem_rate, infla_rate) 
             Nominal_GDP = GDP(log)
         
-        
+        print(t, F.capital)
         log[t] = {
             'year': t // 12.1 + 1,
             'work_state': work_state, 
@@ -151,7 +141,7 @@ def simulation(config:Configuration, event=False, intervention=False):
             'capital': F.capital,
             }
         
-        if t % 3 == 0 and t > 60:
+        if t % 3 == 0 and t > 30:
             for a in agents:
                 a.adjust(t, log)
 
@@ -164,7 +154,7 @@ if __name__ == '__main__':
     
     config = Configuration()
     t1 = time()
-    log = simulation(config)
+    log = simulation(config, event=False, intervention=False)
     plot_log('./figs/log.png', log, config)
     print('running time:{:.3f}'.format(time()-t1))
     
