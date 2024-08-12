@@ -39,7 +39,9 @@ def taxation(wages:list[float]):
         if w > brackets[-1]:
             tax += (w - brackets[-1]) * rates[-1]
         taxes.append(tax)
-    return taxes
+    
+    wages_after_tax = [w - t for w, t in zip(wages, taxes)]
+    return taxes, wages_after_tax
 
 def total_deposit(deposits:dict):
     return sum([deposits[id] for id in deposits.keys()])

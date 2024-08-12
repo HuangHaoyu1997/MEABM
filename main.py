@@ -12,10 +12,11 @@ def simulation(config:Configuration, event=False, intervention=False):
     '''one episode of simulation'''
     random.seed(config.seed)
     np.random.seed(config.seed)
-    
+    a_w = []
     F = firm(A=config.A, 
              alpha_w=config.alpha_w, 
              alpha_p=config.alpha_p,
+             alpha_c=config.alpha_c,
              init_good=config.init_good,
              init_cap=config.init_cap,
              )
@@ -54,7 +55,7 @@ def simulation(config:Configuration, event=False, intervention=False):
     
     for t in range(1, config.num_time_steps+1):
         
-        ################ 事 件 开 始 ################
+        ########################## 事 件 开 始 ##########################
         # 降低就业意愿
         # 产量减少，工资收入减少
         # GDP下降
@@ -73,49 +74,48 @@ def simulation(config:Configuration, event=False, intervention=False):
             if t >= config.event_start and t <= config.event_end:
                 for a, pw in zip(agents, a_pw):
                     # a.pw = 0.1 ** (1/300) * a.pw # 在t=900时，就业意愿下降到t=500时的25%
-                    a.pw = (0.6 ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * pw
+                    a.pw = (0.8 ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * pw
             work_state = [a.work_decision() for a in agents] # work decision
         else:
             work_state = [a.work_decision() for a in agents] # work decision
-        ################ 事 件 结 束 ################
+        ########################## 事 件 结 束 ##########################
         
         production = F.produce(agents) # 生产
         wages = F.pay_wage(agents)     # 支付工资
-        taxes = taxation(wages)        # 计算个税
-        wages_after_tax = [w - t for w, t in zip(wages, taxes)]
+        taxes, wages_after_tax = taxation(wages)        # 计算个税
+        
         for a, w in zip(agents, wages_after_tax):
             a.z = w # update monthly income
-            # print(t, a.id, w, sum(taxes), w + sum(taxes)/config.num_agents)
             
-            ################ 干 预 开 始 ################
+            ########################## 干 预 开 始 ##########################
             if t >= config.intervent_start and t <= config.intervent_end and intervention:
-                B.deposit(a.id, w + sum(taxes)/config.num_agents + 400) # 0.04*B.deposits[a.id] redistribution
+                B.deposit(a.id, w + sum(taxes)/config.num_agents + 100) # 0.04*B.deposits[a.id] redistribution
             else:
                 B.deposit(a.id, w + sum(taxes)/config.num_agents) # redistribution
-            ################ 干 预 结 束 ################
+            ########################## 干 预 结 束 ##########################
+        
+        
         if t % 3 == 0:
             imba = imbalance(agents, F.P, F.G, B.deposits)
         
         ###########################################
         # consumption in random order 随机顺序消费 #
         ###########################################
-        total_consume_money, total_consume_quantity, deposits = consumption(config, agents, F.G, F.P, B.deposits)
-        F.capital += total_consume_money
-        # print(t, '总消费量: ', total_consume_money)
-        #############################
-        # price and wage adjustment #
-        #############################
+        total_money, total_quantity, deposits = consumption(config, agents, F.G, F.P, deepcopy(B.deposits))
+        F.capital += total_money
+        # print(t, '总消费量: ', total_money)
         
+        ###########################################
+        # price and wage adjustment 调整工资和价格 #
+        ###########################################
         F.wage_adjustment(agents, imba)
         F.price_adjustment(imba)
-        F.G -= total_consume_quantity
-        print(B.deposits[1])
+        F.G -= total_quantity
         B.deposits = deposits
-        print(B.deposits[1], '\n')
         
-        #####################
-        # annual operation  #
-        #####################
+        ############################
+        # annual operation 年度调整 #
+        ############################
         if t % 12 == 0:
             B.interest(agents) # interest payment
             unem_rate = unemployment(log)
@@ -123,7 +123,6 @@ def simulation(config:Configuration, event=False, intervention=False):
             B.rate_adjustment(unem_rate, infla_rate) 
             Nominal_GDP = GDP(log)
         
-        print(t, F.capital)
         log[t] = {
             'year': t // 12.1 + 1,
             'work_state': work_state, 
@@ -141,9 +140,14 @@ def simulation(config:Configuration, event=False, intervention=False):
             'capital': F.capital,
             }
         
-        if t % 3 == 0 and t > 30:
+        if t % 6 == 0 and t > 30:
             for a in agents:
                 a.adjust(t, log)
+        a_w.append(agents[0].pc)
+    # import matplotlib.pyplot as plt
+    # plt.plot(a_w)
+    # print(a_w)
+    # plt.show()
 
     return log
 
@@ -152,40 +156,40 @@ if __name__ == '__main__':
     from config import Configuration
     from time import time
     
-    config = Configuration()
-    t1 = time()
-    log = simulation(config, event=False, intervention=False)
-    plot_log('./figs/log.png', log, config)
-    print('running time:{:.3f}'.format(time()-t1))
-    
     # config = Configuration()
-    # config.seed = 123456
-    # logs, logs_no_event = [], []
-    # for i in range(5):
-    #     print(f'Simulation {i+1}/5')
-    #     config.seed += i
-    #     log = simulation(config, event=True, intervention=True)
-    #     logs.append(log)
-    #     log = simulation(config, event=False, intervention=False)
-    #     logs_no_event.append(log)
-    # plot_bar('./figs/bar-event-intervention.png', logs, logs_no_event, config)
+    # t1 = time()
+    # log = simulation(config, event=True, intervention=True)
+    # plot_log('./figs/log.png', log, config)
+    # print('running time:{:.3f}'.format(time()-t1))
     
-    # config.seed = 123456
-    # logs = []
-    # for i in range(5):
-    #     print(f'Simulation {i+1}/5')
-    #     config.seed += i
-    #     log = simulation(config, event=True, intervention=False)
-    #     logs.append(log)
-    # plot_bar('./figs/bar-event-no-intervention.png', logs, logs_no_event, config)
+    config = Configuration()
+    config.seed = 123456
+    logs, logs_no_event = [], []
+    for i in range(5):
+        print(f'Simulation {i+1}/5')
+        config.seed += i
+        log = simulation(config, event=True, intervention=True)
+        logs.append(log)
+        log = simulation(config, event=False, intervention=False)
+        logs_no_event.append(log)
+    plot_bar('./figs/bar-event-intervention.png', logs, logs_no_event, config)
     
-    # config.seed = 123456
-    # logs = []
-    # for i in range(5):
-    #     print(f'Simulation {i+1}/5')
-    #     config.seed += i
-    #     log = simulation(config, event=False, intervention=True)
-    #     logs.append(log)
-    # plot_bar('./figs/bar-no-event-intervention.png', logs, logs_no_event, config)
+    config.seed = 123456
+    logs = []
+    for i in range(5):
+        print(f'Simulation {i+1}/5')
+        config.seed += i
+        log = simulation(config, event=True, intervention=False)
+        logs.append(log)
+    plot_bar('./figs/bar-event-no-intervention.png', logs, logs_no_event, config)
+    
+    config.seed = 123456
+    logs = []
+    for i in range(5):
+        print(f'Simulation {i+1}/5')
+        config.seed += i
+        log = simulation(config, event=False, intervention=True)
+        logs.append(log)
+    plot_bar('./figs/bar-no-event-intervention.png', logs, logs_no_event, config)
     # 
     # 

@@ -74,5 +74,7 @@ class agent:
         
         self.pw += sgn_deposit * np.random.uniform() * self.pw_delta # 存款多了减少工作意愿
         self.pw += sgn_wage * np.random.uniform() * self.pw_delta    # 工资多了增加工作意愿
+        self.pw = max(0, min(self.pw, 1.0))
         self.pc += sgn_price * np.random.uniform() * self.pc_delta   # 价格上涨减少消费意愿
         self.pc += sgn_deposit * np.random.uniform() * self.pc_delta # 存款多了增加消费意愿
+        self.pc = max(0, min(self.pc, 1.0))
