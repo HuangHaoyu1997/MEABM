@@ -138,6 +138,11 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
     capitals_min = capitals_mean - np.std(capitals, axis=0)
     capitals_max = capitals_mean + np.std(capitals, axis=0)
     
+    assets = [[log[key]['assets'] for key in log.keys()] for log in logs]
+    assets_mean = np.mean(assets, axis=0)
+    assets_min = assets_mean - np.std(assets, axis=0)
+    assets_max = assets_mean + np.std(assets, axis=0)
+    
     productions = [[log[key]['production'] for key in log.keys()] for log in logs]
     productions_mean = np.mean(productions, axis=0)
     productions_min = productions_mean - np.std(productions, axis=0)
@@ -158,6 +163,16 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
     avg_wages_min = avg_wages_mean - np.std(avg_wages, axis=0)
     avg_wages_max = avg_wages_mean + np.std(avg_wages, axis=0)
     
+    taxes = [[log[key]['taxes']/config.num_agents for key in log.keys()] for log in logs]
+    taxes_mean = np.mean(taxes, axis=0)
+    taxes_min = taxes_mean - np.std(taxes, axis=0)
+    taxes_max = taxes_mean + np.std(taxes, axis=0)
+    
+    wage_stds = [[np.std(log[key]['wage']) for key in log.keys()] for log in logs]
+    wage_stds_mean = np.mean(wage_stds, axis=0)
+    wage_stds_min = wage_stds_mean - np.std(wage_stds, axis=0)
+    wage_stds_max = wage_stds_mean + np.std(wage_stds, axis=0)
+    
     axs[0, 0].plot(x, prices_mean); axs[0, 0].set_ylabel('Price', fontsize=14)
     axs[0, 0].fill_between(x, prices_min, prices_max, color='red', alpha=0.3)
     
@@ -173,8 +188,10 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
     axs[1, 0].plot(x, imbas_mean); axs[1, 0].set_ylabel('Imbalance: Demand - Supply', fontsize=14)
     axs[1, 0].fill_between(x, imbas_min, imbas_max, color='red', alpha=0.3)
     
-    axs[1, 1].plot(x, capitals_mean); axs[1, 1].set_ylabel('Capital', fontsize=14)
+    axs[1, 1].plot(x, capitals_mean); axs[1, 1].set_ylabel('Capital & Assets', fontsize=14)
     axs[1, 1].fill_between(x, capitals_min, capitals_max, color='red', alpha=0.3)
+    axs[1, 1].plot(x, assets_mean)
+    axs[1, 1].fill_between(x, assets_min, assets_max, color='blue', alpha=0.3)
     
     axs[1, 2].plot(x, productions_mean); axs[1, 2].set_ylabel('Production', fontsize=14)
     axs[1, 2].fill_between(x, productions_min, productions_max, color='red', alpha=0.3)
@@ -187,6 +204,12 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
     
     axs[2, 1].plot(x, avg_wages_mean); axs[2, 1].set_ylabel('Avg wage', fontsize=14)
     axs[2, 1].fill_between(x, avg_wages_min, avg_wages_max, color='red', alpha=0.3)
+    
+    axs[2, 2].plot(x, taxes_mean); axs[2, 2].set_ylabel('Avg tax revenue per capita', fontsize=14)
+    axs[2, 2].fill_between(x, taxes_min, taxes_max, color='red', alpha=0.3)
+    
+    axs[2, 3].plot(x, wage_stds_mean); axs[2, 3].set_ylabel('Wage std', fontsize=14)
+    axs[2, 3].fill_between(x, wage_stds_min, wage_stds_max, color='red', alpha=0.3)
     if logs_compare is not None:
         prices = np.array([[log[key]['price'] for key in log.keys()] for log in logs_compare])
         prices_mean = np.mean(prices, axis=0)
@@ -215,10 +238,15 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
         imbas_min = imbas_mean - np.std(imbas, axis=0)
         imbas_max = imbas_mean + np.std(imbas, axis=0)
         
-        capitals = [[log[key]['capital'] for key in log.keys()] for log in logs_compare]
+        capitals = [[log[key]['capital']+log[key]['assets'] for key in log.keys()] for log in logs_compare]
         capitals_mean = np.mean(capitals, axis=0)
         capitals_min = capitals_mean - np.std(capitals, axis=0)
         capitals_max = capitals_mean + np.std(capitals, axis=0)
+        
+        assets = [[log[key]['assets'] for key in log.keys()] for log in logs_compare]
+        assets_mean = np.mean(assets, axis=0)
+        assets_min = assets_mean - np.std(assets, axis=0)
+        assets_max = assets_mean + np.std(assets, axis=0)
     
         productions = [[log[key]['production'] for key in log.keys()] for log in logs_compare]
         productions_mean = np.mean(productions, axis=0)
@@ -240,6 +268,16 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
         avg_wages_min = avg_wages_mean - np.std(avg_wages, axis=0)
         avg_wages_max = avg_wages_mean + np.std(avg_wages, axis=0)
         
+        taxes = [[log[key]['taxes']/config.num_agents for key in log.keys()] for log in logs_compare]
+        taxes_mean = np.mean(taxes, axis=0)
+        taxes_min = taxes_mean - np.std(taxes, axis=0)
+        taxes_max = taxes_mean + np.std(taxes, axis=0)
+        
+        wage_stds = [[np.std(log[key]['wage']) for key in log.keys()] for log in logs_compare]
+        wage_stds_mean = np.mean(wage_stds, axis=0)
+        wage_stds_min = wage_stds_mean - np.std(wage_stds, axis=0)
+        wage_stds_max = wage_stds_mean + np.std(wage_stds, axis=0)
+        
         axs[0, 0].plot(x, prices_mean); axs[0, 0].set_ylabel('Price', fontsize=14)
         axs[0, 0].fill_between(x, prices_min, prices_max, color='gray', alpha=0.3)
         
@@ -255,8 +293,10 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
         axs[1, 0].plot(x, imbas_mean); axs[1, 0].set_ylabel('Imbalance: Demand - Supply', fontsize=14)
         axs[1, 0].fill_between(x, imbas_min, imbas_max, color='gray', alpha=0.3)
         
-        axs[1, 1].plot(x, capitals_mean); axs[1, 1].set_ylabel('Capital', fontsize=14)
+        axs[1, 1].plot(x, capitals_mean); axs[1, 1].set_ylabel('Capital & Assets', fontsize=14)
         axs[1, 1].fill_between(x, capitals_min, capitals_max, color='gray', alpha=0.3)
+        axs[1, 1].plot(x, assets_mean)
+        axs[1, 1].fill_between(x, assets_min, assets_max, color='gray', alpha=0.3)
     
         axs[1, 2].plot(x, productions_mean); axs[1, 2].set_ylabel('Production', fontsize=14)
         axs[1, 2].fill_between(x, productions_min, productions_max, color='gray', alpha=0.3)
@@ -269,6 +309,12 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
         
         axs[2, 1].plot(x, avg_wages_mean); axs[2, 1].set_ylabel('Avg wage', fontsize=14)
         axs[2, 1].fill_between(x, avg_wages_min, avg_wages_max, color='gray', alpha=0.3)
+        
+        axs[2, 2].plot(x, taxes_mean); axs[2, 2].set_ylabel('Avg tax revenue per capita', fontsize=14)
+        axs[2, 2].fill_between(x, taxes_min, taxes_max, color='gray', alpha=0.3)
+        
+        axs[2, 3].plot(x, wage_stds_mean); axs[2, 3].set_ylabel('Wage std', fontsize=14)
+        axs[2, 3].fill_between(x, wage_stds_min, wage_stds_max, color='gray', alpha=0.3)
     plt.tight_layout()
     plt.savefig(img_name, dpi=300)
 

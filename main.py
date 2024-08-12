@@ -27,12 +27,12 @@ def simulation(config:Configuration, event=False, intervention=False):
              alpha_u=config.alpha_u, 
              num_agents=config.num_agents, 
              rate_min=config.r_min,
+             init_assets=config.init_assets,
              )
     agents = init_agents(config)
 
-    F.P = np.mean([a.w for a in agents]) # t=0 initial price
-    unem_rate, infla_rate, Nominal_GDP = 0., 0., 0.
-    imba = 0.
+    F.P = np.mean([a.w*a.pc for a in agents]) # t=0 initial price
+    unem_rate, infla_rate, Nominal_GDP, imba = 0., 0., 0., 0.
     log = {
         0:
             {
@@ -50,6 +50,7 @@ def simulation(config:Configuration, event=False, intervention=False):
                 'avg_wage': sum([a.w for a in agents])/config.num_agents,
                 'GDP': Nominal_GDP,
                 'capital': F.capital,
+                'assets': B.assets,
                 }
             }
     
@@ -86,14 +87,17 @@ def simulation(config:Configuration, event=False, intervention=False):
         
         for a, w in zip(agents, wages_after_tax):
             a.z = w # update monthly income
+            B.deposit(a.id, w + sum(taxes)/config.num_agents) # 再分配
+            
             
             ########################## 干 预 开 始 ##########################
-            if t >= config.intervent_start and t <= config.intervent_end and intervention:
-                B.deposit(a.id, w + sum(taxes)/config.num_agents + 100) # 0.04*B.deposits[a.id] redistribution
-            else:
-                B.deposit(a.id, w + sum(taxes)/config.num_agents) # redistribution
+            # if t >= config.intervent_start and t <= config.intervent_end and intervention:
+            #     B.deposit(a.id, w + sum(taxes)/config.num_agents + 100) # 0.04*B.deposits[a.id] redistribution
+            # else:
+            #     B.deposit(a.id, w + sum(taxes)/config.num_agents)
             ########################## 干 预 结 束 ##########################
-        
+        if t >= config.intervent_start and t <= config.intervent_end and intervention:
+            B.natural_rate = max(B.natural_rate * 1.002, 0.1)
         
         if t % 3 == 0:
             imba = imbalance(agents, F.P, F.G, B.deposits)
@@ -110,6 +114,7 @@ def simulation(config:Configuration, event=False, intervention=False):
         ###########################################
         F.wage_adjustment(agents, imba)
         F.price_adjustment(imba)
+        F.cap_adjustment(imba)
         F.G -= total_quantity
         B.deposits = deposits
         
@@ -138,6 +143,7 @@ def simulation(config:Configuration, event=False, intervention=False):
             'avg_wage': sum([a.w for a in agents])/sum([1 if a.l else 0 for a in agents]),
             'GDP': Nominal_GDP,
             'capital': F.capital,
+            'assets': B.assets,
             }
         
         if t % 6 == 0 and t > 30:
@@ -146,7 +152,7 @@ def simulation(config:Configuration, event=False, intervention=False):
         a_w.append(agents[0].pc)
     # import matplotlib.pyplot as plt
     # plt.plot(a_w)
-    # print(a_w)
+        # print(t, F.cap4product)
     # plt.show()
 
     return log
@@ -155,13 +161,26 @@ if __name__ == '__main__':
     from utils import plot_log, plot_bar
     from config import Configuration
     from time import time
-    
+    ####################################### 单 次 实 验 #######################################
     # config = Configuration()
     # t1 = time()
     # log = simulation(config, event=True, intervention=True)
     # plot_log('./figs/log.png', log, config)
     # print('running time:{:.3f}'.format(time()-t1))
     
+    ####################################### 多 次 实 验 #######################################
+    # config = Configuration()
+    # config.seed = 123456
+    # logs = []
+    # for i in range(5):
+    #     print(f'Simulation {i+1}/5')
+    #     config.seed += i
+    #     log = simulation(config, event=False, intervention=True)
+    #     logs.append(log)
+    # plot_bar('./figs/bar-no-event-no-intervention.png', logs, logs_compare=None, config=config)
+    
+    
+    ####################################### 对 照 试 验 #######################################
     config = Configuration()
     config.seed = 123456
     logs, logs_no_event = [], []
@@ -174,22 +193,22 @@ if __name__ == '__main__':
         logs_no_event.append(log)
     plot_bar('./figs/bar-event-intervention.png', logs, logs_no_event, config)
     
-    config.seed = 123456
-    logs = []
-    for i in range(5):
-        print(f'Simulation {i+1}/5')
-        config.seed += i
-        log = simulation(config, event=True, intervention=False)
-        logs.append(log)
-    plot_bar('./figs/bar-event-no-intervention.png', logs, logs_no_event, config)
+    # config.seed = 123456
+    # logs = []
+    # for i in range(5):
+    #     print(f'Simulation {i+1}/5')
+    #     config.seed += i
+    #     log = simulation(config, event=True, intervention=False)
+    #     logs.append(log)
+    # plot_bar('./figs/bar-event-no-intervention.png', logs, logs_no_event, config)
     
-    config.seed = 123456
-    logs = []
-    for i in range(5):
-        print(f'Simulation {i+1}/5')
-        config.seed += i
-        log = simulation(config, event=False, intervention=True)
-        logs.append(log)
-    plot_bar('./figs/bar-no-event-intervention.png', logs, logs_no_event, config)
+    # config.seed = 123456
+    # logs = []
+    # for i in range(5):
+    #     print(f'Simulation {i+1}/5')
+    #     config.seed += i
+    #     log = simulation(config, event=False, intervention=True)
+    #     logs.append(log)
+    # plot_bar('./figs/bar-no-event-intervention.png', logs, logs_no_event, config)
     # 
     # 
