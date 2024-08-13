@@ -10,6 +10,8 @@ class firm:
                  alpha_c:float, 
                  init_good:float,
                  init_cap:float,
+                 k_labor:float,
+                 k_capital:float,
                  ):
         self.A = A               # universal productivity
         self.G = init_good       # quantity of essential goods
@@ -18,15 +20,21 @@ class firm:
         self.alpha_p = alpha_p   # price adjustment parameter
         self.alpha_c = alpha_c   # capital adjustment parameter
         self.capital = init_cap  # initial capital
+        
+        self.k_labor = k_labor   
+        self.k_capital = k_capital
         self.cap4product = 1e-4 * init_cap  # init capital for production
 
     def produce(self, agent_list:list[agent],):
         '''
         production of essential goods
+        
         '''
         # random production
         workers = sum([a.l for a in agent_list])
-        production = 168 * self.A * (1 + random.random() * 0.05) * (workers**0.5) * (self.cap4product ** 0.5)
+        production = 168 * self.A * (1 + random.random() * 0.05) * \
+                                    (workers**self.k_labor) * \
+                                    (self.cap4product ** self.k_capital)
         
         self.G += production
         self.capital -= self.cap4product

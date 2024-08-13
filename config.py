@@ -13,7 +13,7 @@ class Configuration:
     #####################################
     seed = 124 # int(time()) # 123
     num_agents = 100
-    num_time_steps = 12 * 100
+    num_time_steps = 12 * 50
     
     
     #####################################
@@ -24,8 +24,10 @@ class Configuration:
     alpha_w = 0.05
     alpha_p = 0.10
     alpha_c = 0.05
-    init_good = 50000
-    init_cap = 1e7
+    init_good = 50000       # 初始商品库存
+    init_cap = 1e7          # 初始资本
+    k_labor = 0.5           # 柯布道格拉斯函数,劳动弹性系数
+    k_capital = 1 - k_labor # 柯布道格拉斯函数,资本弹性系数
     
     #####################################
     ##           银行模型参数           ##
@@ -54,4 +56,7 @@ class Configuration:
     pw_delta = 0.03
     pc_delta = 0.01
     
-    
+    #####################################
+    ##           市场模型参数           ##
+    #####################################
+    tax_rate_good = 0.15

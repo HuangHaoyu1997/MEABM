@@ -19,6 +19,8 @@ def simulation(config:Configuration, event=False, intervention=False):
              alpha_c=config.alpha_c,
              init_good=config.init_good,
              init_cap=config.init_cap,
+             k_labor=config.k_labor,
+             k_capital=config.k_capital,
              )
     B = bank(rn=config.rn, 
              pi_t=config.pi_t, 
@@ -68,19 +70,27 @@ def simulation(config:Configuration, event=False, intervention=False):
         #             a.l = 1 if random.random() < 0.3 else 0
         #             work_state.append(a.l)
         
-        if event:
-            if t == config.event_start:
-                a_pw = [a.pw for a in agents]
+        # if event:
+        #     if t == config.event_start:
+        #         a_pw = [a.pw for a in agents]
 
-            if t >= config.event_start and t <= config.event_end:
-                for a, pw in zip(agents, a_pw):
-                    # a.pw = 0.1 ** (1/300) * a.pw # 在t=900时，就业意愿下降到t=500时的25%
-                    a.pw = (0.8 ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * pw
-            work_state = [a.work_decision() for a in agents] # work decision
-        else:
-            work_state = [a.work_decision() for a in agents] # work decision
+        #     if t >= config.event_start and t <= config.event_end:
+        #         for a, pw in zip(agents, a_pw):
+        #             a.pw = (0.8 ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * pw # 在t=900时，就业意愿下降到t=500时的25%
+        #     work_state = [a.work_decision() for a in agents] # work decision
+        # else:
+        #     work_state = [a.work_decision() for a in agents] # work decision
+        work_state = [a.work_decision() for a in agents] # work decision
         ########################## 事 件 结 束 ##########################
         
+        if event and t in [100, 200, 300, 400]:
+            F.k_capital *= 1.1
+            F.k_labor = 1 - F.k_capital
+            print(f'k_labor: {F.k_labor}, k_capital: {F.k_capital}')
+            
+            
+            
+            
         production = F.produce(agents) # 生产
         wages = F.pay_wage(agents)     # 支付工资
         taxes, wages_after_tax = taxation(wages)        # 计算个税
@@ -96,22 +106,27 @@ def simulation(config:Configuration, event=False, intervention=False):
             # else:
             #     B.deposit(a.id, w + sum(taxes)/config.num_agents)
             ########################## 干 预 结 束 ##########################
+        
+        
+        ########################## 干 预 开 始 ##########################
         if t >= config.intervent_start and t <= config.intervent_end and intervention:
             B.natural_rate = max(B.natural_rate * 1.002, 0.1)
+        ########################## 干 预 结 束 ##########################
+        
         
         if t % 3 == 0:
             imba = imbalance(agents, F.P, F.G, B.deposits)
         
-        ###########################################
-        # consumption in random order 随机顺序消费 #
-        ###########################################
+        ################################################
+        # consumption in random order 随 机 顺 序 消 费 #
+        ################################################
         total_money, total_quantity, deposits = consumption(config, agents, F.G, F.P, deepcopy(B.deposits))
         F.capital += total_money
         # print(t, '总消费量: ', total_money)
         
-        ###########################################
-        # price and wage adjustment 调整工资和价格 #
-        ###########################################
+        ######################################################
+        # price and wage adjustment 调整工资, 价格, 投入资本量 #
+        ######################################################
         F.wage_adjustment(agents, imba)
         F.price_adjustment(imba)
         F.cap_adjustment(imba)
@@ -122,7 +137,7 @@ def simulation(config:Configuration, event=False, intervention=False):
         # annual operation 年度调整 #
         ############################
         if t % 12 == 0:
-            B.interest(agents) # interest payment
+            B.interest(agents)                # interest payment
             unem_rate = unemployment(log)
             infla_rate = inflation(log)
             B.rate_adjustment(unem_rate, infla_rate) 
