@@ -8,24 +8,24 @@ def split_img(img_path:str):
     img = cv2.imread(img_path)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     
-    price_subfig =         img[0:1650, 0:1850, :]
-    interest_rate_subfig = img[0:1650, 1850:3650, :]
-    employment_subfig =    img[0:1650, 3650:5400, :]
-    inflation_subfig =     img[0:1650, 5400:, :]
+    price_fig =         img[130:1650, 130:1850, :]
+    interest_rate_fig = img[130:1650, 1850:3650, :]
+    employment_fig =    img[130:1650, 3650:5400, :]
+    inflation_fig =     img[130:1650, 5400:, :]
     
-    imbalance_subfig =  img[1650:3200, 0:1850, :]
-    capital_subfig =    img[1650:3200, 1850:3600, :]
-    production_subfig = img[1650:3200, 3600:5400, :]
-    gdp_subfig =        img[1650:3200, 5400:, :]
+    imbalance_fig =  img[1700:3200, 0:1850, :]
+    capital_fig =    img[1650:3200, 1850:3600, :]
+    production_fig = img[1700:3200, 3600:5400, :]
+    gdp_fig =        img[1650:3200, 5400:, :]
     
-    avg_deposit_subfig = img[3200:, 0:1850, :]
-    avg_wage_subfig =    img[3200:, 1850:3650, :]
-    avg_tax_subfig =     img[3200:, 3650:5400, :]
-    std_wage_subfig =    img[3200:, 5400:, :]
-    # plt.imshow()
-    # plt.axis('off')
+    avg_deposit_fig = img[3250:-50, 0:1850, :]
+    avg_wage_fig =    img[3250:-50, 1850:3650, :]
+    avg_tax_fig =     img[3250:-50, 3650:5400, :]
+    std_wage_fig =    img[3250:-50, 5400:, :]
+    # plt.imshow(std_wage_fig)
+    # # plt.axis('off')
     # plt.show()
-    return price_subfig, interest_rate_subfig, employment_subfig, inflation_subfig, imbalance_subfig, capital_subfig, production_subfig, gdp_subfig, avg_deposit_subfig, avg_wage_subfig, avg_tax_subfig, std_wage_subfig
+    return [price_fig, interest_rate_fig, employment_fig, inflation_fig, imbalance_fig, capital_fig, production_fig, gdp_fig, avg_deposit_fig, avg_wage_fig, avg_tax_fig, std_wage_fig]
 
 def init_agents(config:Configuration) -> list[agent]:
     agent_list = [agent(id=i, 
