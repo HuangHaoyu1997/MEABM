@@ -23,7 +23,7 @@ class firm:
         
         self.k_labor = k_labor   
         self.k_capital = k_capital
-        self.cap4product = 1e-4 * init_cap  # init capital for production
+        self.cap4product = 5e-5 * init_cap  # init capital for production
 
     def produce(self, agent_list:list[agent],):
         '''

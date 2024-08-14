@@ -6,7 +6,7 @@ class Configuration:
     event_start = 200
     event_end = 350
     intervent_start = 200
-    intervent_end = 400
+    intervent_end = 600
     
     #####################################
     ##           仿 真 参 数           ##
@@ -20,14 +20,14 @@ class Configuration:
     ##           企业模型参数           ##
     #####################################
     
-    A = 1.0         # 生产率
-    alpha_w = 0.05
-    alpha_p = 0.10
+    A = 1.0                 # 生产率
+    alpha_w = 0.05          # 工资调整系数
+    alpha_p = 0.10          # 价格调整系数
     alpha_c = 0.05
     init_good = 50000       # 初始商品库存
     init_cap = 1e7          # 初始资本
-    k_labor = 0.5           # 柯布道格拉斯函数,劳动弹性系数
-    k_capital = 1 - k_labor # 柯布道格拉斯函数,资本弹性系数
+    k_labor = 0.5           # 柯布道格拉斯函数, 劳动弹性系数
+    k_capital = 1 - k_labor # 柯布道格拉斯函数, 资本弹性系数
     
     #####################################
     ##           银行模型参数           ##
@@ -59,4 +59,4 @@ class Configuration:
     #####################################
     ##           市场模型参数           ##
     #####################################
-    tax_rate_good = 0.15
+    tax_rate_good = 0.02

@@ -188,10 +188,10 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
     axs[1, 0].plot(x, imbas_mean); axs[1, 0].set_ylabel('Imbalance: Demand - Supply', fontsize=14)
     axs[1, 0].fill_between(x, imbas_min, imbas_max, color='red', alpha=0.3)
     
-    axs[1, 1].plot(x, capitals_mean); axs[1, 1].set_ylabel('Capital & Assets', fontsize=14)
+    axs[1, 1].plot(x, capitals_mean, label='cap'); axs[1, 1].set_ylabel('Capital & Assets', fontsize=14)
     axs[1, 1].fill_between(x, capitals_min, capitals_max, color='red', alpha=0.3)
-    axs[1, 1].plot(x, assets_mean)
-    axs[1, 1].fill_between(x, assets_min, assets_max, color='blue', alpha=0.3)
+    axs[1, 1].plot(x, assets_mean, label='ass')
+    axs[1, 1].fill_between(x, assets_min, assets_max, color='blue', alpha=0.3); axs[1, 1].legend()
     
     axs[1, 2].plot(x, productions_mean); axs[1, 2].set_ylabel('Production', fontsize=14)
     axs[1, 2].fill_between(x, productions_min, productions_max, color='red', alpha=0.3)
@@ -293,10 +293,10 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
         axs[1, 0].plot(x, imbas_mean); axs[1, 0].set_ylabel('Imbalance: Demand - Supply', fontsize=14)
         axs[1, 0].fill_between(x, imbas_min, imbas_max, color='gray', alpha=0.3)
         
-        axs[1, 1].plot(x, capitals_mean); axs[1, 1].set_ylabel('Capital & Assets', fontsize=14)
+        axs[1, 1].plot(x, capitals_mean, label='cap'); axs[1, 1].set_ylabel('Capital & Assets', fontsize=14)
         axs[1, 1].fill_between(x, capitals_min, capitals_max, color='gray', alpha=0.3)
-        axs[1, 1].plot(x, assets_mean)
-        axs[1, 1].fill_between(x, assets_min, assets_max, color='gray', alpha=0.3)
+        axs[1, 1].plot(x, assets_mean, label='ass')
+        axs[1, 1].fill_between(x, assets_min, assets_max, color='gray', alpha=0.3); axs[1, 1].legend()
     
         axs[1, 2].plot(x, productions_mean); axs[1, 2].set_ylabel('Production', fontsize=14)
         axs[1, 2].fill_between(x, productions_min, productions_max, color='gray', alpha=0.3)

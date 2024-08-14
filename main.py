@@ -8,6 +8,7 @@ from src.firm import firm
 from src.bank import bank   
 from src.market import consumption
 
+
 def simulation(config:Configuration, event=False, intervention=False):
     '''one episode of simulation'''
     random.seed(config.seed)
@@ -81,16 +82,13 @@ def simulation(config:Configuration, event=False, intervention=False):
         # else:
         #     work_state = [a.work_decision() for a in agents] # work decision
         work_state = [a.work_decision() for a in agents] # work decision
-        ########################## 事 件 结 束 ##########################
         
         if event and t in [100, 200, 300, 400]:
-            F.k_capital *= 1.1
+            F.k_capital *= 1.05
             F.k_labor = 1 - F.k_capital
-            print(f'k_labor: {F.k_labor}, k_capital: {F.k_capital}')
-            
-            
-            
-            
+            print(f'{t}, k_labor: {F.k_labor}, k_capital: {F.k_capital}')
+        ########################## 事 件 结 束 ##########################
+        
         production = F.produce(agents) # 生产
         wages = F.pay_wage(agents)     # 支付工资
         taxes, wages_after_tax = taxation(wages)        # 计算个税
@@ -121,7 +119,9 @@ def simulation(config:Configuration, event=False, intervention=False):
         # consumption in random order 随 机 顺 序 消 费 #
         ################################################
         total_money, total_quantity, deposits = consumption(config, agents, F.G, F.P, deepcopy(B.deposits))
-        F.capital += total_money
+        F.capital += total_money * (1-config.tax_rate_good)
+        # print(t, total_money, total_money*config.tax_rate_good)
+        
         # print(t, '总消费量: ', total_money)
         
         ######################################################
@@ -132,6 +132,8 @@ def simulation(config:Configuration, event=False, intervention=False):
         F.cap_adjustment(imba)
         F.G -= total_quantity
         B.deposits = deposits
+        for a in agents:
+            B.deposit(a.id, total_money*config.tax_rate_good/config.num_agents) # 再分配
         
         ############################
         # annual operation 年度调整 #
