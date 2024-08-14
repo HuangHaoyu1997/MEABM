@@ -2,6 +2,30 @@ import numpy as np
 from config import Configuration
 from src.agent import agent, gauss_dist
 
+def split_img(img_path:str):
+    import cv2
+    import matplotlib.pyplot as plt
+    img = cv2.imread(img_path)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    
+    price_subfig =         img[0:1650, 0:1850, :]
+    interest_rate_subfig = img[0:1650, 1850:3650, :]
+    employment_subfig =    img[0:1650, 3650:5400, :]
+    inflation_subfig =     img[0:1650, 5400:, :]
+    
+    imbalance_subfig =  img[1650:3200, 0:1850, :]
+    capital_subfig =    img[1650:3200, 1850:3600, :]
+    production_subfig = img[1650:3200, 3600:5400, :]
+    gdp_subfig =        img[1650:3200, 5400:, :]
+    
+    avg_deposit_subfig = img[3200:, 0:1850, :]
+    avg_wage_subfig =    img[3200:, 1850:3650, :]
+    avg_tax_subfig =     img[3200:, 3650:5400, :]
+    std_wage_subfig =    img[3200:, 5400:, :]
+    # plt.imshow()
+    # plt.axis('off')
+    # plt.show()
+    return price_subfig, interest_rate_subfig, employment_subfig, inflation_subfig, imbalance_subfig, capital_subfig, production_subfig, gdp_subfig, avg_deposit_subfig, avg_wage_subfig, avg_tax_subfig, std_wage_subfig
 
 def init_agents(config:Configuration) -> list[agent]:
     agent_list = [agent(id=i, 
@@ -97,7 +121,7 @@ def imbalance(agent_list:list[agent], P:float, G:float, deposits:dict) -> float:
 def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Configuration):
     import matplotlib.pyplot as plt
     fig, axs = plt.subplots(3, 4, figsize=(24, 16))
-    fig.suptitle('xxx')
+    # fig.suptitle('xxx')
     for i in range(3):
         for j in range(4):
             axs[i, j].set_xlabel('Time / Month'); axs[i, j].grid()
@@ -322,7 +346,7 @@ def plot_log(img_name:str, log:dict, config:Configuration):
     import matplotlib.pyplot as plt
     
     fig, axs = plt.subplots(3, 4, figsize=(24, 16))
-    fig.suptitle('xxx')
+    # fig.suptitle('xxx')
     for i in range(3):
         for j in range(4):
             axs[i, j].set_xlabel('Time / Month'); axs[i, j].grid()
@@ -361,7 +385,10 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     # taxes = taxation([4500, 21000, 57000, 115000, 180000, 300000, 700000])
     # print(taxes)
-    config = Configuration()
-    agents = init_agents(config)
-    plt.hist([a.w for a in agents], bins=20)
-    plt.show()
+    
+    # config = Configuration()
+    # agents = init_agents(config)
+    # plt.hist([a.w for a in agents], bins=20)
+    # plt.show()
+    
+    split_img(img_path='./figs/log_step.png')
