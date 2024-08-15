@@ -39,6 +39,59 @@ def get_expert_response(prefix:str, img, config:Configuration):
 
 if __name__ == '__main__':
     from utils import split_img
+    
+    config = Configuration()
+    
     subfigs = split_img('./figs/log_step.png')
-    response = get_expert_response('', subfigs[0], Configuration())
-    print(response)
+    fig_names = [
+        'price', 
+        'interest rate ', 
+        'employment rate', 
+        'inflation rate', 
+        'demand-supply imbalance', 
+        'firm\'s capital', 
+        'goods production', 
+        'GDP', 
+        'deposit per capita',
+        'wage per capita',
+        'tax revenue per capita',
+        'standard deviation of workers\' wages',
+        ]
+    
+    for fig_name, subfig in zip(fig_names, subfigs):
+        prefix = f'This is the simulated curve of {fig_name} from the agent-based economic model.'
+        response = get_expert_response(prefix, subfig, config)
+        print(response)
+    
+    
+    system_prompt = '''
+    You are an expert economist with a strong background in economic theory and empirical analysis. 
+    Your role is to analyze various economic data and figures from an agent-based economic model, providing insights and recommendations based on your findings.
+    '''
+    
+    # You are an expert economist with a strong background in economic theory and empirical analysis. 
+    # 你面对的是一个具有{config.num_agents}个消费者/工人，1个消费品生产企业，1个储蓄银行，1个政府构成的小型模拟经济体。
+    # 消费者有Individual的就业意愿和消费意愿，并根据市场变化加以调整。
+    # 企业招聘工人生产消费品，支付工资，出售消费品换取利润，并根据供需信号调整生产计划。
+    # 银行有储蓄账户，每年向消费者支付利息一次，并根据市场变化调整存款利息。
+    # 政府对工资收入和企业经营收入征税，并立即均分给消费者。
+    
+    # 你需要分析模拟经济体的一项（以图表展示的）经济指标，并给出分析意见。
+    
+    # 你需要综合所有专家对每一个图表（经济指标）的分析结果，给出对模拟经济体的总体分析意见。
+    
+    
+    
+    # 告知event
+    
+    # 每个专家对各自图表进行分析
+    
+    # 专家汇总分析意见
+    
+    # 给出干预选项和调控目标，每个专家根据总的分析意见给出干预决策
+    
+    # 汇总干预决策，形成最终决策方案
+    
+    # 执行决策，反馈运行结果
+    
+    

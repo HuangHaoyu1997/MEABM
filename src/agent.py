@@ -87,3 +87,6 @@ class agent:
         self.pc += sgn_price * np.random.uniform() * self.pc_delta   # 价格上涨增加消费比例（维持消费量不变）
         self.pc += sgn_deposit * np.random.uniform() * self.pc_delta # 存款多了降低消费比例（维持消费量不变）
         self.pc = max(0, min(self.pc, 1.0))
+        
+        if timestep % 12 in [12, 1, 2]: # 冬季降低就业意愿
+            self.pw *= 0.95

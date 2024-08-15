@@ -64,9 +64,8 @@ def step_simulation(config:Configuration, event:bool, intervention:bool, step:in
             bank.natural_rate = max(bank.natural_rate * 1.002, 0.1)
         ########################## 干 预 结 束 ##########################
         
-        if t % 3 == 0:
-            imba = imbalance(agents, firm.P, firm.G, bank.deposits)
-            
+        if t % 3 == 0: imba = imbalance(agents, firm.P, firm.G, bank.deposits)
+        
         ################################################
         # consumption in random order 随 机 顺 序 消 费 #
         ################################################
@@ -84,9 +83,9 @@ def step_simulation(config:Configuration, event:bool, intervention:bool, step:in
         for a in agents:
             bank.deposit(a.id, total_money*config.tax_rate_good/config.num_agents) # 再分配
         
-        ############################
-        # annual operation 年度调整 #
-        ############################
+        ################################
+        # annual operation 年 度 调 整 #
+        ################################
         if t % 12 == 0:
             bank.interest(agents)                # interest payment
             unem_rate = unemployment(log)
@@ -113,8 +112,7 @@ def step_simulation(config:Configuration, event:bool, intervention:bool, step:in
             }
         
         if t % 6 == 0 and t > 30:
-            for a in agents:
-                a.adjust(t, log)
+            for a in agents: a.adjust(t, log)
     print('finish', t)
     return firm, bank, agents, log
 
