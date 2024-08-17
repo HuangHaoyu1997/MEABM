@@ -71,22 +71,38 @@ def simulation(config:Configuration, event=False, intervention=False):
         #             a.l = 1 if random.random() < 0.3 else 0
         #             work_state.append(a.l)
         
-        # if event:
-        #     if t == config.event_start:
-        #         a_pw = [a.pw for a in agents]
-
-        #     if t >= config.event_start and t <= config.event_end:
-        #         for a, pw in zip(agents, a_pw):
-        #             a.pw = (0.8 ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * pw # 在t=900时，就业意愿下降到t=500时的25%
-        #     work_state = [a.work_decision() for a in agents] # work decision
-        # else:
-        #     work_state = [a.work_decision() for a in agents] # work decision
+        
         work_state = [a.work_decision() for a in agents] # work decision
         
-        if event and t in [100, 200, 300, 400]:
-            F.k_capital *= 1.05
-            F.k_labor = 1 - F.k_capital
-            print(f'{t}, k_labor: {F.k_labor}, k_capital: {F.k_capital}')
+        ########### 实验三: 信息革命
+        # if event and t in [100, 200, 300, 400]:
+        #     F.k_capital *= 1.05
+        #     F.k_labor = 1 - F.k_capital
+        #     print(f'{t}, k_labor: {F.k_labor}, k_capital: {F.k_capital}')
+            
+        ########### 实验二: 战后重建
+        if event:
+            if t == config.event_start:
+                a_pw = [a.pw for a in agents]
+
+            if t >= config.event_start and t <= config.event_end:
+                for a, pw in zip(agents, a_pw):
+                    a.pw = (2.0 ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * pw # 在t=900时，就业意愿下降到t=500时的25%
+            work_state = [a.work_decision() for a in agents] # work decision
+        else:
+            work_state = [a.work_decision() for a in agents] # work decision
+            
+        ########### 实验一: 经济危机
+        if event:
+            if t == config.event_start:
+                a_pw = [a.pw for a in agents]
+
+            if t >= config.event_start and t <= config.event_end:
+                for a, pw in zip(agents, a_pw):
+                    a.pw = (0.9 ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * pw # 在t=900时，就业意愿下降到t=500时的25%
+            work_state = [a.work_decision() for a in agents] # work decision
+        else:
+            work_state = [a.work_decision() for a in agents] # work decision
         ########################## 事 件 结 束 ##########################
         
         production = F.produce(agents) # 生产
@@ -99,10 +115,10 @@ def simulation(config:Configuration, event=False, intervention=False):
             
             
             ########################## 干 预 开 始 ##########################
-            # if t >= config.intervent_start and t <= config.intervent_end and intervention:
-            #     B.deposit(a.id, w + sum(taxes)/config.num_agents + 100) # 0.04*B.deposits[a.id] redistribution
-            # else:
-            #     B.deposit(a.id, w + sum(taxes)/config.num_agents)
+            if t >= config.intervent_start and t <= config.intervent_end and intervention:
+                B.deposit(a.id, w + sum(taxes)/config.num_agents + 200) # 0.04*B.deposits[a.id] redistribution
+            else:
+                B.deposit(a.id, w + sum(taxes)/config.num_agents)
             ########################## 干 预 结 束 ##########################
         
         

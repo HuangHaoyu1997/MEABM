@@ -2,6 +2,18 @@ import numpy as np
 from config import Configuration
 from src.agent import agent, gauss_dist
 
+def gini_coefficient(income_list:list[float]) -> float:
+    sorted_income = sorted(income_list) # 排序收入列表
+    n = len(sorted_income)
+    
+    total_income = sum(sorted_income) # 总收入
+    cumulative_income = [sum(sorted_income[:i + 1]) for i in range(n)] # 累计收入
+
+    # 计算基尼系数
+    gini = 1 - 2 * sum(cumulative_income) / (n * total_income)
+    return gini
+
+
 def split_img(img_path:str):
     import cv2
     import matplotlib.pyplot as plt
@@ -391,4 +403,14 @@ if __name__ == '__main__':
     # plt.hist([a.w for a in agents], bins=20)
     # plt.show()
     
-    split_img(img_path='./figs/log_step.png')
+    # split_img(img_path='./figs/log_step.png')
+    
+    # 示例：创建100个智能体的随机存款
+    import random
+
+    # 生成随机存款
+    random_income = [random.gauss(10, 0.23) for _ in range(100)]
+
+    # 计算基尼系数
+    gini = gini_coefficient(random_income)
+    print("基尼系数:", gini)

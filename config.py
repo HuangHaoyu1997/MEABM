@@ -4,7 +4,7 @@ class Configuration:
     ##           干 预 参 数           ##
     #####################################
     event_start = 200
-    event_end = 350
+    event_end = 400
     intervent_start = 200
     intervent_end = 600
     
@@ -24,9 +24,9 @@ class Configuration:
     alpha_w = 0.05          # 工资调整系数
     alpha_p = 0.10          # 价格调整系数
     alpha_c = 0.05
-    init_good = 50000       # 初始商品库存
+    init_good = 10000       # 初始商品库存
     init_cap = 1e7          # 初始资本
-    k_labor = 0.5           # 柯布道格拉斯函数, 劳动弹性系数
+    k_labor = 0.6           # 柯布道格拉斯函数, 劳动弹性系数
     k_capital = 1 - k_labor # 柯布道格拉斯函数, 资本弹性系数
     
     #####################################
@@ -48,10 +48,10 @@ class Configuration:
     wage_mean = 80
     wage_std = 20
     
-    pw_low = 0.60
-    pw_high = 1.0
-    pc_low = 0.1
-    pc_high = 0.4
+    pw_low = 0.6 # 0.2 # 0.60
+    pw_high = 1.0 # 0.4 # 1.0
+    pc_low = 0.1 # 0.4 # 0.1
+    pc_high = 0.5 # 0.8 # 0.4
     
     pw_delta = 0.03
     pc_delta = 0.01
