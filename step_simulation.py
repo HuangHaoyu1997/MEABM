@@ -1,6 +1,6 @@
 import numpy as np
 import random
-from utils import taxation, inflation, GDP, unemployment, init_agents, imbalance
+from utils import taxation, inflation, GDP, unemployment, init_agents, imbalance, gini_coefficient
 from copy import deepcopy
 from config import Configuration
 from src.agent import agent
@@ -109,6 +109,7 @@ def step_simulation(config:Configuration, event:bool, intervention:bool, step:in
             'GDP': Nominal_GDP,
             'capital': firm.capital,
             'assets': bank.assets,
+            'gini': gini_coefficient([a.w for a in agents]),
             }
         
         if t % 6 == 0 and t > 30:
@@ -160,6 +161,7 @@ if __name__ == '__main__':
                 'GDP': Nominal_GDP,
                 'capital': F.capital,
                 'assets': B.assets,
+                'gini': gini_coefficient([a.w for a in agents]),
                 }
             }
     F, B, agents, log = step_simulation(config, event=False, intervention=False, step=0, length=100, firm=deepcopy(F), bank=deepcopy(B), agents=deepcopy(agents), log=deepcopy(log))

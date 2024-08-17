@@ -398,7 +398,7 @@ if __name__ == '__main__':
     # taxes = taxation([4500, 21000, 57000, 115000, 180000, 300000, 700000])
     # print(taxes)
     
-    # config = Configuration()
+    config = Configuration()
     # agents = init_agents(config)
     # plt.hist([a.w for a in agents], bins=20)
     # plt.show()
@@ -411,6 +411,6 @@ if __name__ == '__main__':
     # 生成随机存款
     random_income = [random.gauss(10, 0.23) for _ in range(100)]
 
-    # 计算基尼系数
-    gini = gini_coefficient(random_income)
+    wages = gauss_dist(config.wage_mean, config.wage_std, config.num_agents)
+    gini = gini_coefficient(wages)
     print("基尼系数:", gini)

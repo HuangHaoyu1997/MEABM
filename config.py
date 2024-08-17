@@ -46,7 +46,7 @@ class Configuration:
     gamma = 0.5
     beta = 0.5
     wage_mean = 80
-    wage_std = 20
+    wage_std = 65
     
     pw_low = 0.6 # 0.2 # 0.60
     pw_high = 1.0 # 0.4 # 1.0
