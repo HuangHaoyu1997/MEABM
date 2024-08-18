@@ -48,6 +48,7 @@ if __name__ == '__main__':
         'interest rate ', 
         'employment rate', 
         'inflation rate', 
+        'gini coefficient',
         'demand-supply imbalance', 
         'firm\'s capital', 
         'goods production', 

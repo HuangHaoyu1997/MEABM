@@ -52,6 +52,8 @@ class firm:
         '''
         imbalance>0, 需求 > 产量, 提高工资
         imbalance<0, 需求 < 产量, 降低工资
+        
+        只调整当期就业工人的工资
         '''
         assert len(agent_list) > 0
         sgn = 1 if imbalance > 0 else -1

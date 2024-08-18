@@ -20,24 +20,25 @@ def split_img(img_path:str):
     img = cv2.imread(img_path)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     
-    price_fig =         img[130:1650, 130:1850, :]
-    interest_rate_fig = img[130:1650, 1850:3650, :]
-    employment_fig =    img[130:1650, 3650:5400, :]
-    inflation_fig =     img[130:1650, 5400:, :]
+    price_fig =         img[30:1550, 130:1850, :]
+    interest_rate_fig = img[30:1550, 1850:3650, :]
+    employment_fig =    img[30:1550, 3650:5400, :]
+    inflation_fig =     img[30:1550, 5400:7200, :]
+    gini_fig =          img[30:1550, 7200:, :]
     
-    imbalance_fig =  img[1700:3200, 0:1850, :]
-    capital_fig =    img[1650:3200, 1850:3600, :]
-    production_fig = img[1700:3200, 3600:5400, :]
-    gdp_fig =        img[1650:3200, 5400:, :]
+    imbalance_fig =  img[1600:3150, 0:1800, :]
+    capital_fig =    img[1600:3150, 1850:3600, :]
+    production_fig = img[1600:3150, 3600:5400, :]
+    gdp_fig =        img[1600:3150, 5400:7200, :]
     
-    avg_deposit_fig = img[3250:-50, 0:1850, :]
-    avg_wage_fig =    img[3250:-50, 1850:3650, :]
-    avg_tax_fig =     img[3250:-50, 3650:5400, :]
-    std_wage_fig =    img[3250:-50, 5400:, :]
-    # plt.imshow(std_wage_fig)
-    # # plt.axis('off')
-    # plt.show()
-    return [price_fig, interest_rate_fig, employment_fig, inflation_fig, imbalance_fig, capital_fig, production_fig, gdp_fig, avg_deposit_fig, avg_wage_fig, avg_tax_fig, std_wage_fig]
+    avg_deposit_fig = img[3200:-50, 0:1850, :]
+    avg_wage_fig =    img[3200:-50, 1850:3600, :]
+    avg_tax_fig =     img[3200:-50, 3600:5400, :]
+    std_wage_fig =    img[3200:-50, 5400:7200, :]
+    plt.imshow(std_wage_fig)
+    # plt.axis('off')
+    plt.show()
+    return [price_fig, interest_rate_fig, employment_fig, inflation_fig, gini_fig, imbalance_fig, capital_fig, production_fig, gdp_fig, avg_deposit_fig, avg_wage_fig, avg_tax_fig, std_wage_fig]
 
 def init_agents(config:Configuration) -> list[agent]:
     agent_list = [agent(id=i, 
@@ -132,10 +133,10 @@ def imbalance(agent_list:list[agent], P:float, G:float, deposits:dict) -> float:
 
 def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Configuration):
     import matplotlib.pyplot as plt
-    fig, axs = plt.subplots(3, 4, figsize=(24, 16))
+    fig, axs = plt.subplots(3, 5, figsize=(30, 16))
     # fig.suptitle('xxx')
     for i in range(3):
-        for j in range(4):
+        for j in range(5):
             axs[i, j].set_xlabel('Time / Month'); axs[i, j].grid()
             axs[i, j].axvline(x=config.event_start, color='r', linestyle='--')
             axs[i, j].axvline(x=config.event_end, color='r', linestyle='--')
@@ -162,6 +163,11 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
     inflation_rates_mean = np.mean(inflation_rates, axis=0)
     inflation_rates_min = inflation_rates_mean - np.std(inflation_rates, axis=0)
     inflation_rates_max = inflation_rates_mean + np.std(inflation_rates, axis=0)
+    
+    ginis = [[log[key]['gini'] for key in log.keys()] for log in logs]
+    ginis_mean = np.mean(ginis, axis=0)
+    ginis_min = ginis_mean - np.std(ginis, axis=0)
+    ginis_max = ginis_mean + np.std(ginis, axis=0)
     
     
     imbas = [[log[key]['imbalance'] for key in log.keys()] for log in logs]
@@ -221,6 +227,9 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
     axs[0, 3].plot(x, inflation_rates_mean); axs[0, 3].set_ylabel('Inflation rate', fontsize=14)
     axs[0, 3].fill_between(x, inflation_rates_min, inflation_rates_max, color='red', alpha=0.3)
     
+    axs[0, 4].plot(x, ginis_mean); axs[0, 4].set_ylabel('Gini coefficient', fontsize=14)
+    axs[0, 4].fill_between(x, ginis_min, ginis_max, color='red', alpha=0.3)
+    
     axs[1, 0].plot(x, imbas_mean); axs[1, 0].set_ylabel('Imbalance: Demand - Supply', fontsize=14)
     axs[1, 0].fill_between(x, imbas_min, imbas_max, color='red', alpha=0.3)
     
@@ -269,6 +278,11 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
         inflation_rates_min = inflation_rates_mean - np.std(inflation_rates, axis=0)
         inflation_rates_max = inflation_rates_mean + np.std(inflation_rates, axis=0)
         
+        ginis = [[log[key]['gini'] for key in log.keys()] for log in logs_compare]
+        ginis_mean = np.mean(ginis, axis=0)
+        ginis_min = ginis_mean - np.std(ginis, axis=0)
+        ginis_max = ginis_mean + np.std(ginis, axis=0)
+    
         imbas = [[log[key]['imbalance'] for key in log.keys()] for log in logs_compare]
         imbas_mean = np.mean(imbas, axis=0)
         imbas_min = imbas_mean - np.std(imbas, axis=0)
@@ -326,6 +340,9 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
         axs[0, 3].plot(x, inflation_rates_mean); axs[0, 3].set_ylabel('Inflation rate', fontsize=14)
         axs[0, 3].fill_between(x, inflation_rates_min, inflation_rates_max, color='gray', alpha=0.3)
         
+        axs[0, 4].plot(x, ginis_mean); axs[0, 4].set_ylabel('Gini coefficient', fontsize=14)
+        axs[0, 4].fill_between(x, ginis_min, ginis_max, color='gray', alpha=0.3)
+    
         axs[1, 0].plot(x, imbas_mean); axs[1, 0].set_ylabel('Imbalance: Demand - Supply', fontsize=14)
         axs[1, 0].fill_between(x, imbas_min, imbas_max, color='gray', alpha=0.3)
         
@@ -357,10 +374,10 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
 def plot_log(img_name:str, log:dict, config:Configuration):
     import matplotlib.pyplot as plt
     
-    fig, axs = plt.subplots(3, 4, figsize=(24, 16))
+    fig, axs = plt.subplots(3, 5, figsize=(30, 16))
     # fig.suptitle('xxx')
     for i in range(3):
-        for j in range(4):
+        for j in range(5):
             axs[i, j].set_xlabel('Time / Month'); axs[i, j].grid()
             axs[i, j].axvline(x=config.event_start, color='r', linestyle='--')
             axs[i, j].axvline(x=config.event_end, color='r', linestyle='--')
@@ -369,6 +386,7 @@ def plot_log(img_name:str, log:dict, config:Configuration):
     rate_history = [log[key]['rate'] for key in log.keys()]
     um_rate_history = [1-log[key]['unemployment_rate'] for key in log.keys()]
     inflation_history = [log[key]['inflation_rate'] for key in log.keys()]
+    gini_history = [log[key]['gini'] for key in log.keys()]
     imba_history = [log[key]['imbalance'] for key in log.keys()]
     capital_history = [log[key]['capital'] for key in log.keys()]
     production_history = [log[key]['production'] for key in log.keys()]
@@ -381,6 +399,7 @@ def plot_log(img_name:str, log:dict, config:Configuration):
     axs[0, 1].plot(rate_history);       axs[0, 1].set_ylabel('Interest rate', fontsize=14)
     axs[0, 2].plot(um_rate_history);    axs[0, 2].set_ylabel('Employment rate', fontsize=14)
     axs[0, 3].plot(inflation_history);  axs[0, 3].set_ylabel('Inflation rate', fontsize=14)
+    axs[0, 4].plot(gini_history);       axs[0, 4].set_ylabel('Gini coefficient', fontsize=14)
     axs[1, 0].plot(imba_history);       axs[1, 0].set_ylabel('Imbalance: Demand - Supply', fontsize=14)
     axs[1, 1].plot(capital_history);    axs[1, 1].set_ylabel('Capital', fontsize=14)
     axs[1, 2].plot(production_history); axs[1, 2].set_ylabel('Production', fontsize=14)
@@ -403,14 +422,14 @@ if __name__ == '__main__':
     # plt.hist([a.w for a in agents], bins=20)
     # plt.show()
     
-    # split_img(img_path='./figs/log_step.png')
+    split_img(img_path='./figs/bar-event-intervention.png')
     
     # 示例：创建100个智能体的随机存款
     import random
 
     # 生成随机存款
-    random_income = [random.gauss(10, 0.23) for _ in range(100)]
+    # random_income = [random.gauss(10, 0.23) for _ in range(100)]
 
-    wages = gauss_dist(config.wage_mean, config.wage_std, config.num_agents)
-    gini = gini_coefficient(wages)
-    print("基尼系数:", gini)
+    # wages = gauss_dist(config.wage_mean, config.wage_std, config.num_agents)
+    # gini = gini_coefficient(wages)
+    # print("基尼系数:", gini)
