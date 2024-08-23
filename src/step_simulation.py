@@ -11,7 +11,9 @@ from src.market import consumption
 
 
 def step_simulation(config:Configuration, event:bool, intervention:bool, step:int, length:int, firm:firm, bank:bank, agents:list[agent], log:dict[int:dict]):
-    '''simulate several steps of a simulation'''
+    '''
+    simulate several steps of a simulation.
+    '''
     random.seed(config.seed)
     np.random.seed(config.seed)
     

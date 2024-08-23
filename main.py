@@ -9,8 +9,10 @@ from src.bank import bank
 from src.market import consumption
 
 
-def simulation(config:Configuration, event=False, intervention=False):
-    '''one episode of simulation'''
+def simulation(config:Configuration, event:int=0, intervention=False):
+    '''
+    one episode of simulation
+    '''
     random.seed(config.seed)
     np.random.seed(config.seed)
     a_w = []
@@ -75,26 +77,8 @@ def simulation(config:Configuration, event=False, intervention=False):
         
         work_state = [a.work_decision() for a in agents] # work decision
         
-        ########### 实验三: 信息革命
-        # if event and t in [100, 200, 300, 400]:
-        #     F.k_capital *= 1.05
-        #     F.k_labor = 1 - F.k_capital
-        #     print(f'{t}, k_labor: {F.k_labor}, k_capital: {F.k_capital}')
-            
-        ########### 实验二: 战后重建
-        if event:
-            if t == config.event_start:
-                a_pw = [a.pw for a in agents]
-
-            if t >= config.event_start and t <= config.event_end:
-                for a, pw in zip(agents, a_pw):
-                    a.pw = (2.0 ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * pw # 在t=900时，就业意愿下降到t=500时的25%
-            work_state = [a.work_decision() for a in agents] # work decision
-        else:
-            work_state = [a.work_decision() for a in agents] # work decision
-            
         ########### 实验一: 经济危机
-        if event:
+        if event == 1:
             if t == config.event_start:
                 a_pw = [a.pw for a in agents]
 
@@ -102,8 +86,23 @@ def simulation(config:Configuration, event=False, intervention=False):
                 for a, pw in zip(agents, a_pw):
                     a.pw = (0.9 ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * pw # 在t=900时，就业意愿下降到t=500时的25%
             work_state = [a.work_decision() for a in agents] # work decision
-        else:
+            
+        ########### 实验二: 战后重建
+        if event == 2:
+            if t == config.event_start:
+                a_pw = [a.pw for a in agents]
+
+            if t >= config.event_start and t <= config.event_end:
+                for a, pw in zip(agents, a_pw):
+                    a.pw = (2.0 ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * pw # 在t=900时，就业意愿下降到t=500时的25%
             work_state = [a.work_decision() for a in agents] # work decision
+        
+        ########### 实验三: 信息革命
+        if event == 3 and t in [100, 200, 300, 400]:
+            F.k_capital *= 1.05
+            F.k_labor = 1 - F.k_capital
+            print(f'{t}, k_labor: {F.k_labor}, k_capital: {F.k_capital}')
+        
         ########################## 事 件 结 束 ##########################
         
         production = F.produce(agents) # 生产
@@ -196,6 +195,7 @@ if __name__ == '__main__':
     from utils import plot_log, plot_bar
     from config import Configuration
     from time import time
+    
     ####################################### 单 次 实 验 #######################################
     # config = Configuration()
     # t1 = time()
@@ -210,7 +210,7 @@ if __name__ == '__main__':
     # for i in range(5):
     #     print(f'Simulation {i+1}/5')
     #     config.seed += i
-    #     log = simulation(config, event=False, intervention=True)
+    #     log = simulation(config, event=0, intervention=True)
     #     logs.append(log)
     # plot_bar('./figs/bar-no-event-no-intervention.png', logs, logs_compare=None, config=config)
     
@@ -224,7 +224,7 @@ if __name__ == '__main__':
         config.seed += i
         log = simulation(config, event=True, intervention=True)
         logs.append(log)
-        log = simulation(config, event=False, intervention=False)
+        log = simulation(config, event=0, intervention=False)
         logs_no_event.append(log)
     plot_bar('./figs/bar-event-intervention.png', logs, logs_no_event, config)
     
@@ -242,7 +242,7 @@ if __name__ == '__main__':
     # for i in range(5):
     #     print(f'Simulation {i+1}/5')
     #     config.seed += i
-    #     log = simulation(config, event=False, intervention=True)
+    #     log = simulation(config, event=0, intervention=True)
     #     logs.append(log)
     # plot_bar('./figs/bar-no-event-intervention.png', logs, logs_no_event, config)
     # 
