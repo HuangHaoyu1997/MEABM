@@ -1,13 +1,12 @@
 import numpy as np
 import random
-from utils import taxation, inflation, GDP, unemployment, init_agents, imbalance, gini_coefficient
 from copy import deepcopy
 from config import Configuration
 from src.agent import agent
 from src.firm import firm
 from src.bank import bank   
 from src.market import consumption
-
+from src.utils import taxation, inflation, GDP, unemployment, init_agents, imbalance, gini_coefficient
 
 def simulation(config:Configuration, event:int=0, intervention=False):
     '''
@@ -128,8 +127,7 @@ def simulation(config:Configuration, event:int=0, intervention=False):
         ########################## 干 预 结 束 ##########################
         
         
-        if t % 3 == 0:
-            imba = imbalance(agents, F.P, F.G, B.deposits)
+        if t % 3 == 0: imba = imbalance(agents, F.P, F.G, B.deposits)
         
         ################################################
         # consumption in random order 随 机 顺 序 消 费 #
@@ -151,9 +149,9 @@ def simulation(config:Configuration, event:int=0, intervention=False):
         for a in agents:
             B.deposit(a.id, total_money*config.tax_rate_good/config.num_agents) # 再分配
         
-        ############################
-        # annual operation 年度调整 #
-        ############################
+        ################################
+        # annual operation 年 度 调 整 #
+        ################################
         if t % 12 == 0:
             B.interest(agents)                # interest payment
             unem_rate = unemployment(log)
@@ -181,8 +179,7 @@ def simulation(config:Configuration, event:int=0, intervention=False):
             }
         
         if t % 6 == 0 and t > 30:
-            for a in agents:
-                a.adjust(t, log)
+            for a in agents: a.adjust(t, log)
         a_w.append(agents[0].pc)
     # import matplotlib.pyplot as plt
     # plt.plot(a_w)

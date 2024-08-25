@@ -140,7 +140,7 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
             axs[i, j].set_xlabel('Time / Month'); axs[i, j].grid()
             axs[i, j].axvline(x=config.event_start, color='r', linestyle='--')
             axs[i, j].axvline(x=config.event_end, color='r', linestyle='--')
-            
+            axs[i, j].set_xlim(-20, config.num_time_steps+20)
     
     prices = np.array([[log[key]['price'] for key in log.keys()] for log in logs])
     prices_mean = np.mean(prices, axis=0)
@@ -381,6 +381,7 @@ def plot_log(img_name:str, log:dict, config:Configuration):
             axs[i, j].set_xlabel('Time / Month'); axs[i, j].grid()
             axs[i, j].axvline(x=config.event_start, color='r', linestyle='--')
             axs[i, j].axvline(x=config.event_end, color='r', linestyle='--')
+            axs[i, j].set_xlim(-20, config.num_time_steps+20)
     
     price_history = [log[key]['price'] for key in log.keys()]
     rate_history = [log[key]['rate'] for key in log.keys()]

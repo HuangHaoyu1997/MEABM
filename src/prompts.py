@@ -34,6 +34,14 @@ Your role is to analyze various economic data and figures from an macro-economic
     - in each period, distribute the tax revenue to all agents averagely
 '''
 
+
+'''
+I will give you a series of figures from the agent-based economic model one by one. 
+After you receive one figure, you should reply with 'receive'.
+After I speak 'analyze', you should provide insights and recommendations based on your findings.
+now I'm going to provide you the first figure.
+'''
+
 user_prompt = '''
 This is the simulated curve of {fig_name} from the agent-based economic model.
 ** information **:
@@ -42,6 +50,7 @@ This is the simulated curve of {fig_name} from the agent-based economic model.
 - event: {event_name}
 - event time: {event_time}
 - event effect: {event_effect}
+- the red region in the figure represents
 
 ** instructions **:
 1. analyze the simulated curve of {fig_name}.

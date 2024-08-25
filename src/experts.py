@@ -5,7 +5,7 @@ from config import Configuration
 from api_key import api_key
 import cv2, base64, requests
 
-def get_expert_response(img, prefix:str, sys_prompt:str, user_prompt:str, config:Configuration):
+def get_expert_response(img, sys_prompt:str, user_prompt:str, config:Configuration):
     
     _, encoded_image = cv2.imencode('.png', img)
     binary_image = encoded_image.tobytes()
@@ -18,7 +18,7 @@ def get_expert_response(img, prefix:str, sys_prompt:str, user_prompt:str, config
             {"role": "system", "content": sys_prompt},
             {"role": "user", "content": 
                 [
-                    {"type": "text", "text": prefix + user_prompt},
+                    {"type": "text", "text": user_prompt},
                     {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}},
                     ]
                 }
@@ -52,10 +52,10 @@ if __name__ == '__main__':
         'tax revenue per capita',
         'standard deviation of workers\' wages',
         ]
-    # for fig_name, subfig in zip(fig_names, subfigs):
-    #     prefix = f'This is the simulated curve of {fig_name} from the agent-based economic model.'
-    #     response = get_expert_response(subfig, prefix, config)
-    #     print(response)
+    for fig_name, subfig in zip(fig_names, subfigs):
+        prefix = f'This is the simulated curve of {fig_name} from the agent-based economic model.'
+        response = get_expert_response(subfig, config)
+        print(response)
     
     
     
@@ -88,5 +88,11 @@ if __name__ == '__main__':
     # 执行决策，反馈运行结果
     
     from prompts import user_prompt
-    print(user_prompt.format(fig_name='123'))
+    user_prompt.format(fig_name='price of goods',
+                       now_step='400',
+                       index_name='price',
+                       event_name='economic crisis',
+                       event_time='350',
+                       event_effect='workers\' work will be reduced',)
+    
     

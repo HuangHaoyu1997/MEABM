@@ -1,13 +1,20 @@
+import sys
+import os
+
+
+current_dir = os.path.dirname(__file__) # 获取当前文件的目录
+parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir)) # 获取上级目录
+sys.path.append(parent_dir) # 将上级目录添加到 sys.path
+
 import numpy as np
 import random
-from utils import taxation, inflation, GDP, unemployment, init_agents, imbalance, gini_coefficient
 from copy import deepcopy
-from config import Configuration
+from config import Configuration # 现在可以导入上级目录的模块
 from src.agent import agent
 from src.firm import firm
 from src.bank import bank   
 from src.market import consumption
-
+from src.utils import taxation, inflation, GDP, unemployment, init_agents, imbalance, gini_coefficient
 
 
 def step_simulation(config:Configuration, event:bool, intervention:bool, step:int, length:int, firm:firm, bank:bank, agents:list[agent], log:dict[int:dict]):
@@ -45,12 +52,35 @@ def step_simulation(config:Configuration, event:bool, intervention:bool, step:in
         #     work_state = [a.work_decision() for a in agents] # work decision
         # else:
         #     work_state = [a.work_decision() for a in agents] # work decision
+        
         work_state = [a.work_decision() for a in agents] # work decision
         
-        if event and t in [100, 200, 300, 400]:
+        ########### 实验一: 经济危机
+        if event == 1:
+            if t == config.event_start:
+                a_pw = [a.pw for a in agents]
+
+            if t >= config.event_start and t <= config.event_end:
+                for a, pw in zip(agents, a_pw):
+                    a.pw = (0.9 ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * pw # 在t=900时，就业意愿下降到t=500时的25%
+            work_state = [a.work_decision() for a in agents] # work decision
+            
+        ########### 实验二: 战后重建
+        if event == 2:
+            if t == config.event_start:
+                a_pw = [a.pw for a in agents]
+
+            if t >= config.event_start and t <= config.event_end:
+                for a, pw in zip(agents, a_pw):
+                    a.pw = (2.0 ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * pw # 在t=900时，就业意愿下降到t=500时的25%
+            work_state = [a.work_decision() for a in agents] # work decision
+        
+        ########### 实验三: 信息革命
+        if event == 3 and t in [100, 200, 300, 400]:
             firm.k_capital *= 1.05
             firm.k_labor = 1 - firm.k_capital
             print(f'{t}, k_labor: {firm.k_labor}, k_capital: {firm.k_capital}')
+        
         ########################## 事 件 结 束 ##########################
         
         production = firm.produce(agents)               # 生产
@@ -60,6 +90,13 @@ def step_simulation(config:Configuration, event:bool, intervention:bool, step:in
         for a, w in zip(agents, wages_after_tax):
             a.z = w # update monthly income
             bank.deposit(a.id, w + sum(taxes)/config.num_agents) # 再分配
+            
+            ########################## 干 预 开 始 ##########################
+            if t >= config.intervent_start and t <= config.intervent_end and intervention:
+                bank.deposit(a.id, w + sum(taxes)/config.num_agents + 200) # 0.04*B.deposits[a.id] redistribution
+            else:
+                bank.deposit(a.id, w + sum(taxes)/config.num_agents)
+            ########################## 干 预 结 束 ##########################
         
         ########################## 干 预 开 始 ##########################
         if t >= config.intervent_start and t <= config.intervent_end and intervention:
@@ -73,6 +110,9 @@ def step_simulation(config:Configuration, event:bool, intervention:bool, step:in
         ################################################
         total_money, total_quantity, deposits = consumption(config, agents, firm.G, firm.P, deepcopy(bank.deposits))
         firm.capital += total_money * (1-config.tax_rate_good)
+        # print(t, total_money, total_money*config.tax_rate_good)
+        
+        # print(t, '总消费量: ', total_money)
         
         ######################################################
         # price and wage adjustment 调整工资, 价格, 投入资本量 #
@@ -116,14 +156,14 @@ def step_simulation(config:Configuration, event:bool, intervention:bool, step:in
         
         if t % 6 == 0 and t > 30:
             for a in agents: a.adjust(t, log)
-    print('finish', t)
+    print('finish at timestep ', t)
     return firm, bank, agents, log
 
 if __name__ == '__main__':
     from utils import plot_log, plot_bar
     config = Configuration()
     
-    F = firm(A=config.A, 
+    F0 = firm(A=config.A, 
              alpha_w=config.alpha_w, 
              alpha_p=config.alpha_p,
              alpha_c=config.alpha_c,
@@ -132,7 +172,7 @@ if __name__ == '__main__':
              k_labor=config.k_labor,
              k_capital=config.k_capital,
              )
-    B = bank(rn=config.rn, 
+    B0 = bank(rn=config.rn, 
              pi_t=config.pi_t, 
              un=config.un, 
              alpha_pi=config.alpha_pi, 
@@ -141,33 +181,44 @@ if __name__ == '__main__':
              rate_min=config.r_min,
              init_assets=config.init_assets,
              )
-    agents = init_agents(config)
+    agents0 = init_agents(config)
     
-    F.P = np.mean([a.w*a.pc for a in agents]) # t=0 initial price
-    unem_rate, infla_rate, Nominal_GDP, imba = 0., 0., 0., 0.
-    log = {
-        0:
-            {
+    F0.P = np.mean([a.w*a.pc for a in agents0]) # t=0 initial price
+    
+    
+    logs, others = [], []
+    for i in range(5):
+        config.seed = i
+        log = {
+            0:{
                 'year': 0,
-                'work_state': [a.l for a in agents], 
-                'wage': [a.w for a in agents],
-                'price': F.P, 
-                'rate': B.rate, 
-                'production': F.G,
-                'imbalance': imba,
-                'inflation_rate': infla_rate,
+                'work_state': [a.l for a in agents0], 
+                'wage': [a.w for a in agents0],
+                'price': F0.P, 
+                'rate': B0.rate, 
+                'production': F0.G,
+                'imbalance': 0.,
+                'inflation_rate': 0.,
                 'taxes': 0,
-                'unemployment_rate': unem_rate,
+                'unemployment_rate': 0.,
                 'deposit': {i: 0.0 for i in range(config.num_agents)},
-                'avg_wage': sum([a.w for a in agents])/config.num_agents,
-                'GDP': Nominal_GDP,
-                'capital': F.capital,
-                'assets': B.assets,
-                'gini': gini_coefficient([a.w for a in agents]),
+                'avg_wage': sum([a.w for a in agents0])/config.num_agents,
+                'GDP': 0.,
+                'capital': F0.capital,
+                'assets': B0.assets,
+                'gini': gini_coefficient([a.w for a in agents0]),
                 }
             }
-    F, B, agents, log = step_simulation(config, event=False, intervention=False, step=0, length=100, firm=deepcopy(F), bank=deepcopy(B), agents=deepcopy(agents), log=deepcopy(log))
+        F, B, agents, log = step_simulation(config, event=False, intervention=False, step=0, length=100, firm=deepcopy(F0), bank=deepcopy(B0), agents=deepcopy(agents0), log=deepcopy(log))
+        F, B, agents, log = step_simulation(config, event=False, intervention=False, step=100, length=200, firm=deepcopy(F), bank=deepcopy(B), agents=deepcopy(agents), log=deepcopy(log))
+        # print(max(list(log.keys())))
+        logs.append(log)
+        others.append([F, B, agents])
     
-    F, B, agents, log = step_simulation(config, event=False, intervention=False, step=100, length=200, firm=deepcopy(F), bank=deepcopy(B), agents=deepcopy(agents), log=deepcopy(log))
-    
-    plot_log('./figs/log_step.png', log, config)
+    logss = []
+    for i in range(5):
+        config.seed = i
+        F, B, agents, log = step_simulation(config, event=False, intervention=False, step=max(list(logs[0].keys())), length=100, firm=deepcopy(others[i][0]), bank=deepcopy(others[i][1]), agents=deepcopy(others[i][2]), log=deepcopy(logs[i]))
+        logss.append(log)
+    # plot_log('./figs/log_step.png', log, config)
+    plot_bar('./figs/bar_step.png', logss, None, config)
