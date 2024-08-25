@@ -5,27 +5,20 @@ from config import Configuration
 from api_key import api_key
 import cv2, base64, requests
 
-def get_expert_response(prefix:str, img, config:Configuration):
+def get_expert_response(img, prefix:str, sys_prompt:str, user_prompt:str, config:Configuration):
     
-    success, encoded_image = cv2.imencode('.png', img)
+    _, encoded_image = cv2.imencode('.png', img)
     binary_image = encoded_image.tobytes()
     base64_image = base64.b64encode(binary_image).decode('utf-8')
-    
-    system_prompt = '''
-    You are an expert economist with a strong background in economic theory and empirical analysis. 
-    Your role is to analyze various economic data and figures from an agent-based economic model, providing insights and recommendations based on your findings.
-    '''
-    
-    prompt = '''Give professional but brief analysis of the figure.'''
     
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
     payload = {
         "model": config.gpt_model,
         "messages": [
-            {"role": "system", "content": system_prompt},
+            {"role": "system", "content": sys_prompt},
             {"role": "user", "content": 
                 [
-                    {"type": "text", "text": prefix + prompt},
+                    {"type": "text", "text": prefix + user_prompt},
                     {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}},
                     ]
                 }
@@ -38,11 +31,12 @@ def get_expert_response(prefix:str, img, config:Configuration):
     return response.json()['choices'][0]['message']['content']
 
 if __name__ == '__main__':
+    import matplotlib.pyplot as plt
     from utils import split_img
     
     config = Configuration()
     
-    subfigs = split_img('./figs/log_step.png')
+    subfigs = split_img('./figs/bar-event-intervention.png')
     fig_names = [
         'price', 
         'interest rate ', 
@@ -50,7 +44,7 @@ if __name__ == '__main__':
         'inflation rate', 
         'gini coefficient',
         'demand-supply imbalance', 
-        'firm\'s capital', 
+        'firm\'s capital and bank\'s assets', 
         'goods production', 
         'GDP', 
         'deposit per capita',
@@ -58,17 +52,12 @@ if __name__ == '__main__':
         'tax revenue per capita',
         'standard deviation of workers\' wages',
         ]
+    # for fig_name, subfig in zip(fig_names, subfigs):
+    #     prefix = f'This is the simulated curve of {fig_name} from the agent-based economic model.'
+    #     response = get_expert_response(subfig, prefix, config)
+    #     print(response)
     
-    for fig_name, subfig in zip(fig_names, subfigs):
-        prefix = f'This is the simulated curve of {fig_name} from the agent-based economic model.'
-        response = get_expert_response(prefix, subfig, config)
-        print(response)
     
-    
-    system_prompt = '''
-    You are an expert economist with a strong background in economic theory and empirical analysis. 
-    Your role is to analyze various economic data and figures from an agent-based economic model, providing insights and recommendations based on your findings.
-    '''
     
     # You are an expert economist with a strong background in economic theory and empirical analysis. 
     # 你面对的是一个具有{config.num_agents}个消费者/工人，1个消费品生产企业，1个储蓄银行，1个政府构成的小型模拟经济体。
@@ -76,6 +65,9 @@ if __name__ == '__main__':
     # 企业招聘工人生产消费品，支付工资，出售消费品换取利润，并根据供需信号调整生产计划。
     # 银行有储蓄账户，每年向消费者支付利息一次，并根据市场变化调整存款利息。
     # 政府对工资收入和企业经营收入征税，并立即均分给消费者。
+
+    
+
     
     # 你需要分析模拟经济体的一项（以图表展示的）经济指标，并给出分析意见。
     
@@ -95,4 +87,6 @@ if __name__ == '__main__':
     
     # 执行决策，反馈运行结果
     
+    from prompts import user_prompt
+    print(user_prompt.format(fig_name='123'))
     

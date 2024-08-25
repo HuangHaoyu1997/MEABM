@@ -20,7 +20,7 @@ def split_img(img_path:str):
     img = cv2.imread(img_path)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     
-    price_fig =         img[30:1550, 130:1850, :]
+    price_fig =         img[30:1550, 50:1850, :]
     interest_rate_fig = img[30:1550, 1850:3650, :]
     employment_fig =    img[30:1550, 3650:5400, :]
     inflation_fig =     img[30:1550, 5400:7200, :]
@@ -29,15 +29,15 @@ def split_img(img_path:str):
     imbalance_fig =  img[1600:3150, 0:1800, :]
     capital_fig =    img[1600:3150, 1850:3600, :]
     production_fig = img[1600:3150, 3600:5400, :]
-    gdp_fig =        img[1600:3150, 5400:7200, :]
+    gdp_fig =        img[1600:3150, 5450:7200, :]
     
-    avg_deposit_fig = img[3200:-50, 0:1850, :]
+    avg_deposit_fig = img[3200:-50, 50:1850, :]
     avg_wage_fig =    img[3200:-50, 1850:3600, :]
     avg_tax_fig =     img[3200:-50, 3600:5400, :]
-    std_wage_fig =    img[3200:-50, 5400:7200, :]
-    plt.imshow(std_wage_fig)
+    std_wage_fig =    img[3200:-50, 5450:7200, :]
+    # plt.imshow(std_wage_fig)
     # plt.axis('off')
-    plt.show()
+    # plt.show()
     return [price_fig, interest_rate_fig, employment_fig, inflation_fig, gini_fig, imbalance_fig, capital_fig, production_fig, gdp_fig, avg_deposit_fig, avg_wage_fig, avg_tax_fig, std_wage_fig]
 
 def init_agents(config:Configuration) -> list[agent]:
