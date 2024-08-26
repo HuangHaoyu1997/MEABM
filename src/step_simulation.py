@@ -1,7 +1,5 @@
 import sys
 import os
-
-
 current_dir = os.path.dirname(__file__) # 获取当前文件的目录
 parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir)) # 获取上级目录
 sys.path.append(parent_dir) # 将上级目录添加到 sys.path
@@ -178,6 +176,7 @@ if __name__ == '__main__':
              alpha_pi=config.alpha_pi, 
              alpha_u=config.alpha_u, 
              num_agents=config.num_agents, 
+             rate_max=config.r_max, 
              rate_min=config.r_min,
              init_assets=config.init_assets,
              )
