@@ -74,14 +74,14 @@ def simulation(config:Configuration|EconomicCrisisConfig, intervention=False):
         #☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆#
         #☆☆☆☆☆☆☆ 实验一: 经济危机 ☆☆☆☆☆☆☆#
         #☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆#
+        # 失业率最高25%-35%
         # 
         if config.event_type == 1:
-            if t == config.event_start:
-                a_pw = [a.pw for a in agents]
-
+            if t == config.event_start: a_pw = [a.pw for a in agents]
             if t >= config.event_start and t <= config.event_end:
                 for a, pw in zip(agents, a_pw):
-                    a.pw = (0.9 ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * pw # 在t=900时，就业意愿下降到t=500时的25%
+                    # 在t=event_end时，就业意愿下降到t=event_start时的0.7
+                    a.pw = (0.7 ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * pw 
             work_state = [a.work_decision() for a in agents] # work decision
             
         
@@ -97,10 +97,7 @@ def simulation(config:Configuration|EconomicCrisisConfig, intervention=False):
         # 高储蓄率
         # 就业意愿从低到高
         if config.event_type == 2:
-            if t == config.event_start:
-                a_pw = [a.pw for a in agents]
-                k_capital = deepcopy(F.k_capital)
-
+            if t == config.event_start: a_pw = [a.pw for a in agents]; k_capital = deepcopy(F.k_capital)
             if t >= config.event_start and t <= config.event_end:
                 # 在t=event_end时, 资本投入系数增加到t=event_start时的 (0.3/0.4) 倍
                 F.k_capital = ((0.3 / k_capital) ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * k_capital
@@ -125,9 +122,7 @@ def simulation(config:Configuration|EconomicCrisisConfig, intervention=False):
         # 储蓄利率从低到高
         # 高就业率
         if config.event_type == 3:
-            if t == config.event_start:
-                k_capital = deepcopy(F.k_capital)
-
+            if t == config.event_start: k_capital = deepcopy(F.k_capital)
             if t >= config.event_start and t <= config.event_end:
                 # 在t=event_end时, 资本投入系数增加到t=event_start时的 (0.7/0.3) 倍
                 F.k_capital = ((0.7 / k_capital) ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * k_capital

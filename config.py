@@ -2,8 +2,9 @@ from time import time
 class Configuration:
     def __init__(self):
         #####################################
-        ##           干 预 参 数           ##
+        ##       事 件 与 干 预 参 数       ##
         #####################################
+        self.event_flag = False
         self.event_type = 0
         self.event_start = 200
         self.event_end = 400
@@ -79,9 +80,10 @@ class EconomicCrisisConfig(Configuration):
     def __init__(self):
         super().__init__()
         #####################################
-        ##           干 预 参 数           ##
+        ##       事 件 与 干 预 参 数       ##
         #####################################
         self.event_type = 1
+        self.event_flag = True
         
         
         #####################################
@@ -95,6 +97,12 @@ class EconomicCrisisConfig(Configuration):
         #####################################
         self.rn = 0.05
         self.r_max = 0.20
+        
+        #####################################
+        ##          Agent模型参数          ##
+        #####################################
+        self.pw_low = 0.85
+        self.pw_high = 0.45
 
 
 
