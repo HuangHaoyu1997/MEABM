@@ -51,8 +51,8 @@ class Configuration:
         self.wage_mean = 80
         self.wage_std = 65
         
-        self.pw_low = 0.6 # 0.2 # 0.60
-        self.pw_high = 1.0 # 0.4 # 1.0
+        self.pw_low = 0.6 # 0.2 # 0.60     # 就业意愿下限
+        self.pw_high = 1.0 # 0.4 # 1.0     # 就业意愿上限
         self.pc_low = 0.1 # 0.4 # 0.1
         self.pc_high = 0.5 # 0.8 # 0.4
         
@@ -73,6 +73,9 @@ class Configuration:
         self.temperature = 0.5
 
 class EconomicCrisisConfig(Configuration):
+    '''
+    模拟1925-1935的经济危机期
+    '''
     def __init__(self):
         super().__init__()
         #####################################
@@ -87,7 +90,18 @@ class EconomicCrisisConfig(Configuration):
         self.k_labor = 0.7
         self.k_capital = 1 - self.k_labor
         
+        #####################################
+        ##           银行模型参数           ##
+        #####################################
+        self.rn = 0.05
+        self.r_max = 0.20
+
+
+
 class ReconstructionConfig(Configuration):
+    '''
+    模拟二战后1945-1955的欧洲重建时期
+    '''
     def __init__(self):
         super().__init__()
         #####################################
@@ -96,3 +110,54 @@ class ReconstructionConfig(Configuration):
         self.event_type = 2
         
         
+        #####################################
+        ##        企 业 模  型 参 数        ##
+        #####################################
+        self.k_labor = 0.6
+        self.k_capital = 1 - self.k_labor # 0.4
+        
+        
+        #####################################
+        ##           银行模型参数           ##
+        #####################################
+        self.rn = 0.025
+        self.r_max = 0.10
+        
+        #####################################
+        ##          Agent模型参数          ##
+        #####################################
+        self.pw_low = 0.35
+        self.pw_high = 0.45
+
+
+class EconomicProsperityConfig(Configuration):
+    '''
+    模拟1960s-2000s的经济繁荣期
+    '''
+    def __init__(self):
+        super().__init__()
+        #####################################
+        ##           干 预 参 数           ##
+        #####################################
+        self.event_type = 3
+        self.event_start = 50
+        self.event_end = 400
+        
+        #####################################
+        ##        企 业 模  型 参 数        ##
+        #####################################
+        self.k_labor = 0.7
+        self.k_capital = 1 - self.k_labor
+        
+        
+        #####################################
+        ##           银行模型参数           ##
+        #####################################
+        self.rn = 0.01
+        self.r_max = 0.10
+        
+        #####################################
+        ##          Agent模型参数          ##
+        #####################################
+        self.pw_low = 0.75
+        self.pw_high = 0.95

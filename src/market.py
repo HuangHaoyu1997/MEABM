@@ -5,6 +5,10 @@ from src.agent import agent
 def consumption(config:Configuration, agents:list[agent], good_quantity:float, price:float, deposits:dict):
     '''
     随机顺序的消费
+    return: 
+    - total_consume_money: 总消费金额
+    - total_consume_quantity: 总消费数量
+    - deposits: 更新后的储蓄账户
     '''
     random_list = np.arange(config.num_agents)
     np.random.shuffle(random_list)

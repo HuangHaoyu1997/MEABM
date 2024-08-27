@@ -5,10 +5,14 @@ parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir)) # 获取上�
 sys.path.append(parent_dir) # 将上级目录添加到 sys.path
 from config import Configuration, EconomicCrisisConfig
 import random
+from copy import deepcopy
 import numpy as np
 from firm import firm
 from bank import bank
 from utils import taxation, inflation, GDP, unemployment, init_agents, imbalance, gini_coefficient
+from market import consumption
+
+
 
 def simulation(config:Configuration|EconomicCrisisConfig, intervention=False):
     '''
@@ -67,7 +71,10 @@ def simulation(config:Configuration|EconomicCrisisConfig, intervention=False):
         ########################## 事 件 开 始 ##########################
         work_state = [a.work_decision() for a in agents] # work decision
         
-        ########### 实验一: 经济危机
+        #☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆#
+        #☆☆☆☆☆☆☆ 实验一: 经济危机 ☆☆☆☆☆☆☆#
+        #☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆#
+        # 
         if config.event_type == 1:
             if t == config.event_start:
                 a_pw = [a.pw for a in agents]
@@ -77,20 +84,61 @@ def simulation(config:Configuration|EconomicCrisisConfig, intervention=False):
                     a.pw = (0.9 ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * pw # 在t=900时，就业意愿下降到t=500时的25%
             work_state = [a.work_decision() for a in agents] # work decision
             
-        ########### 实验二: 战后重建
+        
+        
+        
+        
+        #☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆#
+        #☆☆☆☆☆☆☆ 实验二: 战后重建 ☆☆☆☆☆☆☆#
+        #☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆#
+        
+        # 劳动的边际产出率从0.6上升到0.7
+        # 资本的边际效率从0.4下降到0.3
+        # 高储蓄率
+        # 就业意愿从低到高
         if config.event_type == 2:
             if t == config.event_start:
                 a_pw = [a.pw for a in agents]
+                k_capital = deepcopy(F.k_capital)
 
             if t >= config.event_start and t <= config.event_end:
+                # 在t=event_end时, 资本投入系数增加到t=event_start时的 (0.3/0.4) 倍
+                F.k_capital = ((0.3 / k_capital) ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * k_capital
+                F.k_labor = 1 - F.k_capital
+                # print(f'{t}, k_labor: {F.k_labor}, k_capital: {F.k_capital}')
+                
                 for a, pw in zip(agents, a_pw):
-                    a.pw = (2.0 ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * pw # 在t=900时，就业意愿下降到t=500时的25%
+                    # 在t=event_end时, 就业意愿增加到t=event_start时的2倍
+                    a.pw = max((2.0 ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * pw, 1.0)
             work_state = [a.work_decision() for a in agents] # work decision
         
-        ########### 实验三: 信息革命
-        if config.event_type == 3 and t in [100, 200, 300, 400]:
-            F.k_capital *= 1.05
-            F.k_labor = 1 - F.k_capital
+        
+        
+        
+        
+        #☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆#
+        #☆☆☆☆☆☆☆ 实验三: 产业繁荣 ☆☆☆☆☆☆☆#
+        #☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆#
+        
+        # 劳动的边际产出率从0.7下降到0.3
+        # 资本的边际效率从0.3上升到0.7
+        # 储蓄利率从低到高
+        # 高就业率
+        if config.event_type == 3:
+            if t == config.event_start:
+                k_capital = deepcopy(F.k_capital)
+
+            if t >= config.event_start and t <= config.event_end:
+                # 在t=event_end时, 资本投入系数增加到t=event_start时的 (0.7/0.3) 倍
+                F.k_capital = ((0.7 / k_capital) ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * k_capital
+                F.k_labor = 1 - F.k_capital
+                
+                # 自然利率增加到事件之初的 2.012 倍
+                B.natural_rate = max(B.natural_rate * 1.002, 0.1) # 1.002 ** 350 = 2.012
+        
+            # if t in [100, 200, 300, 400]:
+            #     F.k_capital *= 1.05
+            #     F.k_labor = 1 - F.k_capital
             # print(f'{t}, k_labor: {F.k_labor}, k_capital: {F.k_capital}')
         
         ########################## 事 件 结 束 ##########################
@@ -126,10 +174,8 @@ def simulation(config:Configuration|EconomicCrisisConfig, intervention=False):
         # consumption in random order 随 机 顺 序 消 费 #
         ################################################
         total_money, total_quantity, deposits = consumption(config, agents, F.G, F.P, deepcopy(B.deposits))
-        F.capital += total_money * (1-config.tax_rate_good)
-        # print(t, total_money, total_money*config.tax_rate_good)
-        
-        # print(t, '总消费量: ', total_money)
+        F.capital += total_money * (1 - config.tax_rate_good)
+        # print(t, '总消费金额: ', total_money)
         
         ######################################################
         # price and wage adjustment 调整工资, 价格, 投入资本量 #

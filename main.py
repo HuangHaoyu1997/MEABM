@@ -1,11 +1,8 @@
-import numpy as np
-import random
-from copy import deepcopy
 from config import Configuration
 from src.agent import agent
 from src.firm import firm
 from src.bank import bank   
-from src.market import consumption
+
 
 
 
