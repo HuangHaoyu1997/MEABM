@@ -1,16 +1,11 @@
-import sys
-import os
-current_dir = os.path.dirname(__file__) # 获取当前文件的目录
-parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir)) # 获取上级目录
-sys.path.append(parent_dir) # 将上级目录添加到 sys.path
 from config import Configuration, EconomicCrisisConfig
 import random
 from copy import deepcopy
 import numpy as np
-from firm import firm
-from bank import bank
-from utils import taxation, inflation, GDP, unemployment, init_agents, imbalance, gini_coefficient
-from market import consumption
+from src.firm import firm
+from src.bank import bank
+from src.utils import taxation, inflation, GDP, unemployment, init_agents, imbalance, gini_coefficient
+from src.market import consumption
 
 
 
