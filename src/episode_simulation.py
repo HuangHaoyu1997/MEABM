@@ -40,26 +40,25 @@ def simulation(config:Configuration|EconomicCrisisConfig, intervention=False):
     F.P = np.mean([a.w*a.pc for a in agents]) # t=0 initial price
     unem_rate, infla_rate, Nominal_GDP, imba = 0., 0., 0., 0.
     log = {
-        0:
-            {
-                'year': 0,
-                'work_state': [a.l for a in agents], 
-                'wage': [a.w for a in agents],
-                'price': F.P, 
-                'rate': B.rate, 
-                'production': F.G,
-                'imbalance': imba,
-                'inflation_rate': infla_rate,
-                'taxes': 0,
-                'unemployment_rate': unem_rate,
-                'deposit': {i: 0.0 for i in range(config.num_agents)},
-                'avg_wage': sum([a.w for a in agents])/config.num_agents,
-                'GDP': Nominal_GDP,
-                'capital': F.capital,
-                'assets': B.assets,
-                'gini': gini_coefficient([a.w for a in agents]),
-                }
+        0:{
+            'year': 0,
+            'work_state': [a.l for a in agents], 
+            'wage': [a.w for a in agents],
+            'price': F.P, 
+            'rate': B.rate, 
+            'production': F.G,
+            'imbalance': imba,
+            'inflation_rate': infla_rate,
+            'taxes': 0,
+            'unemployment_rate': unem_rate,
+            'deposit': {i: 0.0 for i in range(config.num_agents)},
+            'avg_wage': sum([a.w for a in agents])/config.num_agents,
+            'GDP': Nominal_GDP,
+            'capital': F.capital,
+            'assets': B.assets,
+            'gini': gini_coefficient([a.w for a in agents]),
             }
+        }
     
     for t in range(1, config.num_time_steps+1):
         
@@ -71,7 +70,7 @@ def simulation(config:Configuration|EconomicCrisisConfig, intervention=False):
         #☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆#
         # 失业率最高25%-35%
         # 
-        if config.event_type == 1:
+        if config.event_type == 1 and config.event_flag:
             if t == config.event_start: a_pw = [a.pw for a in agents]
             if t >= config.event_start and t <= config.event_end:
                 for a, pw in zip(agents, a_pw):
@@ -79,9 +78,6 @@ def simulation(config:Configuration|EconomicCrisisConfig, intervention=False):
                     a.pw = (0.7 ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * pw 
             work_state = [a.work_decision() for a in agents] # work decision
             
-        
-        
-        
         
         #☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆#
         #☆☆☆☆☆☆☆ 实验二: 战后重建 ☆☆☆☆☆☆☆#
@@ -91,7 +87,7 @@ def simulation(config:Configuration|EconomicCrisisConfig, intervention=False):
         # 资本的边际效率从0.4下降到0.3
         # 高储蓄率
         # 就业意愿从低到高
-        if config.event_type == 2:
+        if config.event_type == 2 and config.event_flag:
             if t == config.event_start: a_pw = [a.pw for a in agents]; k_capital = deepcopy(F.k_capital)
             if t >= config.event_start and t <= config.event_end:
                 # 在t=event_end时, 资本投入系数增加到t=event_start时的 (0.3/0.4) 倍
@@ -116,7 +112,7 @@ def simulation(config:Configuration|EconomicCrisisConfig, intervention=False):
         # 资本的边际效率从0.3上升到0.7
         # 储蓄利率从低到高
         # 高就业率
-        if config.event_type == 3:
+        if config.event_type == 3 and config.event_flag:
             if t == config.event_start: k_capital = deepcopy(F.k_capital)
             if t >= config.event_start and t <= config.event_end:
                 # 在t=event_end时, 资本投入系数增加到t=event_start时的 (0.7/0.3) 倍

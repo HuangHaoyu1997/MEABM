@@ -104,8 +104,6 @@ class EconomicCrisisConfig(Configuration):
         self.pw_low = 0.85
         self.pw_high = 0.45
 
-
-
 class ReconstructionConfig(Configuration):
     '''
     模拟二战后1945-1955的欧洲重建时期

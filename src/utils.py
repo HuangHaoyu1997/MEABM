@@ -369,7 +369,7 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
         axs[2, 3].plot(x, wage_stds_mean); axs[2, 3].set_ylabel('Wage std', fontsize=14)
         axs[2, 3].fill_between(x, wage_stds_min, wage_stds_max, color='gray', alpha=0.3)
     plt.tight_layout()
-    plt.savefig(img_name, dpi=300)
+    plt.savefig(img_name) # , dpi=300
 
 def plot_log(img_name:str, log:dict, config:Configuration):
     import matplotlib.pyplot as plt
