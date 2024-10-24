@@ -19,9 +19,6 @@ def encoding(input, concept_neurons: list[EventDrivenConceptNeuron]):
     return encoding, concept_neurons
 
 
-
-
-
 if __name__ == '__main__':
     ConceptNeurons = [
         EventDrivenConceptNeuron(v_th=1, m_init=0),
@@ -31,7 +28,5 @@ if __name__ == '__main__':
     ]
 
     print(ConceptNeurons[0].m)
-
     output = encoding(25.3, ConceptNeurons)
-
     print(ConceptNeurons[0].m)
