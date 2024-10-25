@@ -3,7 +3,7 @@ from src.agent import agent
 from src.firm import firm
 from src.bank import bank   
 from src.episode_simulation import simulation
-
+from copy import deepcopy
 
 
 
@@ -32,19 +32,17 @@ if __name__ == '__main__':
     
     
     ####################################### 对 照 试 验 #######################################
-    # config_no_event = Configuration()
-    # config_no_event.seed = 123456
-    config_event = EconomicCrisisConfig(); config_event.seed = 123456
-    config_no_event = EconomicCrisisConfig(); config_no_event.event_flag = False; config_no_event.seed = 123456
-    logs, logs_no_event = [], []
+    config_no_regulation = deepcopy(EconomicCrisisConfig())
+    config_no_regulation.seed = 123456
+    config_regulation = deepcopy(EconomicCrisisConfig()); config_regulation.seed = 123456
+    # config_no_regulation = EconomicCrisisConfig(); config_no_regulation.seed = 123456
+    logs_intervention, logs_no_intervention = [], []
     for i in range(5):
         print(f'Simulation {i+1}/5')
-        config_event.seed += i; config_no_event.seed += i
-        log = simulation(config_event, intervention=True)
-        logs.append(log)
-        log_no_event = simulation(config_no_event, intervention=False)
-        logs_no_event.append(log_no_event)
-    plot_bar('./figs/bar-event-intervention.svg', logs, logs_no_event, config_no_event)
+        config_regulation.seed += i; config_no_regulation.seed += i
+        logs_intervention.append(simulation(config_regulation, intervention=True))
+        logs_no_intervention.append(simulation(config_no_regulation, intervention=False))
+    plot_bar('./figs/bar-event-intervention1.svg', logs_intervention, logs_no_intervention, config_no_regulation)
     
     # config.seed = 123456
     # logs = []

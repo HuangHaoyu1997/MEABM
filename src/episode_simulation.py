@@ -8,7 +8,6 @@ from src.utils import taxation, inflation, GDP, unemployment, init_agents, imbal
 from src.market import consumption
 
 
-
 def simulation(config:Configuration|EconomicCrisisConfig, intervention=False):
     '''
     one episode of simulation
@@ -101,9 +100,6 @@ def simulation(config:Configuration|EconomicCrisisConfig, intervention=False):
             work_state = [a.work_decision() for a in agents] # work decision
         
         
-        
-        
-        
         #☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆#
         #☆☆☆☆☆☆☆ 实验三: 产业繁荣 ☆☆☆☆☆☆☆#
         #☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆#
@@ -150,7 +146,7 @@ def simulation(config:Configuration|EconomicCrisisConfig, intervention=False):
         
         ########################## 干 预 开 始 ##########################
         if t >= config.intervent_start and t <= config.intervent_end and intervention:
-            B.natural_rate = max(B.natural_rate * 1.002, 0.1)
+            B.natural_rate = max(B.natural_rate * 1.007, 0.2)
         ########################## 干 预 结 束 ##########################
         
         

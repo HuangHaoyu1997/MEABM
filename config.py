@@ -84,7 +84,10 @@ class EconomicCrisisConfig(Configuration):
         #####################################
         self.event_type = 1
         self.event_flag = True
-        
+        self.event_start = 200
+        self.event_end = 400
+        self.intervent_start = 200
+        self.intervent_end = 400    
         
         #####################################
         ##        企 业 模  型 参 数        ##
@@ -96,7 +99,7 @@ class EconomicCrisisConfig(Configuration):
         ##           银行模型参数           ##
         #####################################
         self.rn = 0.05
-        self.r_max = 0.20
+        self.r_max = 0.3
         
         #####################################
         ##          Agent模型参数          ##
