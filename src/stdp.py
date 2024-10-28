@@ -33,7 +33,6 @@ if __name__ == '__main__':
     
     STDP_learner = STDP()
     
-    
     w = 0.0111  # 初始突触权重
     T = 1000  # 总时间（毫秒）
 

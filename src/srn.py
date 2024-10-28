@@ -14,9 +14,21 @@ class EventDrivenConceptNeuron:
         else:
             return 0
 
+class TransmissionNeuron:
+    def __init__(self, v_th, m_init, m_tau, m_reset, beta):
+        self.v_th = v_th # firing threshold
+        self.m = m_init # initial membrane potential
+        self.m_tau = m_tau # membrane time constant
+        self.m_reset = m_reset # reset potential
+        self.beta = beta # input scaling factor
+
+    def fire(self, input):
+        self.m = self.m * self.m_tau + input * self.beta
+
 def encoding(input, concept_neurons: list[EventDrivenConceptNeuron]):
     encoding = [neuron.fire(input) for neuron in concept_neurons]
     return encoding, concept_neurons
+
 
 
 if __name__ == '__main__':
