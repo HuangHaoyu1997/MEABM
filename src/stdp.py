@@ -12,9 +12,13 @@ class STDP:
     def learn(self, spikes1, spikes2, w):
         '''
         Neuron-to-Neuron STDP Learning
+        
         :param spikes1: spikes of neuron1
+
         :param spikes2: spikes of neuron2
+
         :param w: initial weight
+
         :return: updated weight
         '''
         for t1 in spikes1:
