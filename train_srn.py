@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 length = 200
-simu_GDP = np.sin(np.arange(0, 20, 0.1)) * 200
+simu_GDP = np.sin(np.arange(0, 20, 0.1)) * 15
 
 # ConceptNeurons = [
 #         EventDrivenConceptNeuron(v_th=1, m_init=0, polar=-1),
@@ -12,10 +12,9 @@ simu_GDP = np.sin(np.arange(0, 20, 0.1)) * 200
 #         EventDrivenConceptNeuron(v_th=50, m_init=0, polar=-1),
 #     ]
 ConceptNeurons = [
-        PECN(v_th=1, m_init=0),
-        PECN(v_th=15, m_init=0),
-        EventDrivenConceptNeuron(v_th=10, m_init=0, polar=-1),
-        EventDrivenConceptNeuron(v_th=50, m_init=0, polar=-1),
+        NECN(v_th=1),
+        NECN(v_th=5),
+        NECN(v_th=20),
     ]
 yts = []
 for xt in simu_GDP:

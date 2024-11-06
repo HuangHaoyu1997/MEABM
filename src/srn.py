@@ -9,9 +9,12 @@ class PECN:
     def fire(self, input):
         if input - self.m > self.v_th:
             self.m = input
-            return 1
+            spike = 1
         else:
-            return 0
+            spike = 0
+        if input < self.m:
+            self.m = input
+        return spike
 
 class NECN:
     '''
@@ -23,10 +26,13 @@ class NECN:
     def fire(self, input):
         if input - self.m < -self.v_th:
             self.m = input
-            return 1
+            spike = 1
         else:
-            return 0
-        
+            spike = 0
+        if input > self.m:
+            self.m = input
+        return spike
+
 class EventDrivenConceptNeuron:
     def __init__(self, v_th, m_init, polar=1):
         '''
@@ -67,7 +73,7 @@ class TransmissionNeuron:
         else:
             return 0
 
-def encoding(input, concept_neurons: list[EventDrivenConceptNeuron]):
+def encoding(input, concept_neurons: list[EventDrivenConceptNeuron|PECN|NECN]):
     encoding = [neuron.fire(input) for neuron in concept_neurons]
     return encoding, concept_neurons
 
