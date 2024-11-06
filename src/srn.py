@@ -1,21 +1,55 @@
 # 事件驱动的脉冲编码概念神经元
-class EventDrivenConceptNeuron:
-    def __init__(self, v_th, m_init):
-        self.v_th = v_th # firing threshold
-        self.m = m_init # initial membrane potential
-        
+class PECN:
+    '''
+    Positive Event-driven Concept Neuron (P-ECN)
+    '''
+    def __init__(self, v_th, m_init=0):
+        self.v_th = v_th
+        self.m = m_init
     def fire(self, input):
         if input - self.m > self.v_th:
             self.m = input
             return 1
-        elif input - self.m < -self.v_th:
-            self.m = input
-            return -1
         else:
             return 0
 
+class NECN:
+    '''
+    Negative Event-driven Concept Neuron (N-ECN)
+    '''
+    def __init__(self, v_th, m_init=0):
+        self.v_th = v_th
+        self.m = m_init
+    def fire(self, input):
+        if input - self.m < -self.v_th:
+            self.m = input
+            return 1
+        else:
+            return 0
+        
+class EventDrivenConceptNeuron:
+    def __init__(self, v_th, m_init, polar=1):
+        '''
+        polar: 1 for increasing events, -1 for decreasing events
+        '''
+        self.polar = polar
+        self.v_th = v_th # firing threshold
+        self.m = m_init # initial membrane potential
+        
+    def fire(self, input):
+        if self.polar == 1:
+            # 输入信号-膜电位大于阈值，脉冲发生
+            if input - self.m > self.v_th: spike = 1
+            else:                          spike = 0
+        elif self.polar == -1:
+            # 输入信号小于膜电位，且输入信号与膜电位差值大于阈值，脉冲发生
+            if input < self.m and abs(input - self.m) > self.v_th: spike = 1
+            else:                                                  spike = 0
+        self.m = input # 膜电位更新
+        return spike
+
 class TransmissionNeuron:
-    def __init__(self, v_th, m_init, m_tau, m_reset, beta):
+    def __init__(self, v_th, m_init, m_tau, m_reset, beta=0.5005):
         '''
         beta: input scaling factor
         '''
@@ -30,6 +64,8 @@ class TransmissionNeuron:
         if self.m - self.m_reset > self.v_th:
             self.m = self.m_reset
             return 1
+        else:
+            return 0
 
 def encoding(input, concept_neurons: list[EventDrivenConceptNeuron]):
     encoding = [neuron.fire(input) for neuron in concept_neurons]
