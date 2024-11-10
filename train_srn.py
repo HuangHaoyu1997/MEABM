@@ -1,4 +1,5 @@
 from src.srn import EventDrivenConceptNeuron, PECN, NECN, TransmissionNeuron, encoding
+from src.stdp import stdp
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -32,28 +33,29 @@ tran_neurons = [
     ]
 
 W = np.random.rand()
+tran_neuron = TransmissionNeuron(v_th=1.0, m_init=0, m_tau=0.1, m_reset=0)
 
-tran_neuron = TransmissionNeuron(v_th=1.0, m_init=0, m_tau=0.5, m_reset=0)
-
-m_potentials = []
-Ws = np.zeros((length)) # weight history
-post_spikes = np.zeros((length)) # spike history
+m_potentials = [] # membrane potential history
+Ws = []           # weight history
+post_spikes = []  # spike history
 
 for t in range(length):
     spike = tran_neuron.fire(yts[t,0] * W)
-    post_spikes[t] = spike
-    W += 0.04 * max(yts[t,0], 0)
-    W -= 0.04 * spike
-    W = max(min(W, 1), -1)
-    Ws[t] = W
+    post_spikes.append(spike)
+    W = stdp(W, 0.04, 0.04, 0.002, yts[t, 0], spike)
+    
+    Ws.append(W)
     m_potentials.append(tran_neuron.m)
-    print(W, spike, tran_neuron.m)
 print([i.m_tau for i in tran_neurons])
-plt.figure(1)
-plt.subplot(611); plt.plot(simu_GDP, '.')
-plt.subplot(612); plt.plot(yts[:, 0], '.')
-plt.subplot(613); plt.plot(yts[:, 1], '.')
-plt.subplot(614); plt.plot(Ws)
-plt.subplot(615); plt.plot(post_spikes, '.')
-plt.subplot(616); plt.plot(m_potentials)
+
+
+plt.figure(1, figsize=(8, 12))
+plt.subplot(611); plt.plot(simu_GDP, '.');    plt.title('GDP')
+plt.subplot(612); plt.plot(yts[:, 0], '.');   plt.title('Concept Neuron vth=1')
+plt.subplot(613); plt.plot(yts[:, 1], '.');   plt.title('Concept Neuron vth=5')
+plt.subplot(614); plt.plot(Ws);               plt.title('Weight update history')
+plt.subplot(615); plt.plot(post_spikes, '.'); plt.title('Spiking history')
+plt.subplot(616); plt.plot(m_potentials);     plt.title('Membrane potential of transmission neuron')
+
+plt.tight_layout()
 plt.show()

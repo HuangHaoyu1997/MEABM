@@ -1,6 +1,17 @@
 import numpy as np
 import random
 
+def stdp(weight: float, A_pre: float, A_post: float, decay: float, pre_spike: bool, post_spike: bool) -> float:
+    w = weight
+    if pre_spike:
+        w += A_pre
+    if post_spike:
+        w -= A_post
+    if not pre_spike and not post_spike:
+        w -= decay
+    w = max(min(w, 1), -1)
+    return w
+
 class STDP:
     def __init__(self, A_plus=0.005, tau_pos=20.0, A_minus=0.005, tau_neg=20.0):
         # STDP参数
