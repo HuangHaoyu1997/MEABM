@@ -12,52 +12,74 @@ def stdp(weight: float, A_pre: float, A_post: float, decay: float, pre_spike: bo
     w = max(min(w, 1), -1)
     return w
 
-class STDP:
-    def __init__(self, A_plus=0.005, tau_pos=20.0, A_minus=0.005, tau_neg=20.0):
-        # STDP参数
-        self.tau_pos = tau_pos  # 突触增强的时间常数（毫秒）
-        self.tau_neg = tau_neg  # 突触减弱的时间常数（毫秒）
-        self.A_plus = A_plus  # 突触增强的幅度
-        self.A_minus = A_minus  # 突触减弱的幅度
 
-    def learn(self, spikes1, spikes2, w):
-        '''
-        Neuron-to-Neuron STDP Learning
+def stdp_with_window(sa, sb, w, dt_positive=2, dt_negative=2, learning_rate=0.01, time_window=5):
+    """
+    sa: 神经元A的脉冲序列 (list of int)
+    sb: 神经元B的脉冲序列 (list of int)
+    w: 当前权重 (float)
+    dt_positive: 突触前脉冲在突触后脉冲之前的时间窗口 (时间步数)
+    dt_negative: 突触前脉冲在突触后脉冲之后的时间窗口 (时间步数)
+    learning_rate: 学习率 (float)
+    time_window: 有效时间窗口 (时间步数)
+    
+    return: 更新后的权重 (float)
+    """
+    
+    # 获取脉冲时间
+    spikes_A = [i for i in range(len(sa)) if sa[i] == 1]
+    spikes_B = [i for i in range(len(sb)) if sb[i] == 1]
+
+    i, j = 0, 0  # 分别指向A和B的脉冲序列
+    while i < len(spikes_A) and j < len(spikes_B):
+        t_A = spikes_A[i]
+        t_B = spikes_B[j]
         
-        :param spikes1: spikes of neuron1
+        time_difference = t_B - t_A # 计算时间差
+        
+        # 正向STDP
+        if 0 < time_difference <= dt_positive and time_difference <= time_window:
+            w += learning_rate * (1.0 - time_difference / dt_positive)  # 使用线性衰减
+            w += learning_rate * np.exp(-time_difference / dt_positive)
+            i += 1  # A的脉冲已经处理，移动到下一个脉冲
+        elif time_difference > dt_positive:
+            # A的脉冲在B的脉冲之前，并且超出了正向窗口，移动A的指针
+            i += 1
+        
+        # 负向STDP
+        else:  # time_difference <= 0
+            if -dt_negative <= time_difference < 0 and -time_difference <= time_window:
+                w -= learning_rate * (1.0 + time_difference / dt_negative)  # 使用线性增加
+                w -= learning_rate * np.exp(time_difference / dt_negative)
+            j += 1 # 如果B的脉冲早于A的脉冲，移动B的指针
 
-        :param spikes2: spikes of neuron2
-
-        :param w: initial weight
-
-        :return: updated weight
-        '''
-        for t1 in spikes1:
-            for t2 in spikes2:
-                if t1 < t2:  # neuron1 spike before neuron2
-                    delta_t = t2 - t1
-                    w += self.A_plus * np.exp(-delta_t / self.tau_pos)  # 突触增强
-                elif t1 > t2:  # neuron1 spike after neuron2
-                    delta_t = t1 - t2
-                    w -= self.A_minus * np.exp(-delta_t / self.tau_neg)  # 突触减弱
-        # weight clipping
-        w = np.clip(w, 0, 1)
-        return w
+    w = max(0.0, min(w, 1.0))  # 假设权重在0到1之间
+    return w
 
 if __name__ == '__main__':
     
-    STDP_learner = STDP()
+    # STDP_learner = STDP()
     
-    w = 0.0111  # 初始突触权重
-    T = 1000  # 总时间（毫秒）
+    # w = 0.0111  # 初始突触权重
+    # T = 1000  # 总时间（毫秒）
 
-    # 记录尖峰事件
-    spikes_neuron1 = np.array(sorted(random.sample(range(1001), 20)))
-    spikes_neuron2 = spikes_neuron1 + 10 # sorted(random.sample(range(1001), 20))
+    # # 记录尖峰事件
+    # spikes_neuron1 = np.array(sorted(random.sample(range(1001), 20)))
+    # spikes_neuron2 = spikes_neuron1 + 10 # sorted(random.sample(range(1001), 20))
 
-    # 进行STDP学习
-    for epoch in range(100):  # 多次迭代
-        w = STDP_learner.learn(spikes_neuron1, spikes_neuron2, w)
-        print(epoch, w)
+    # # 进行STDP学习
+    # for epoch in range(100):  # 多次迭代
+    #     w = STDP_learner.learn(spikes_neuron1, spikes_neuron2, w)
+    #     print(epoch, w)
 
-    print(f'最终突触权重: {w:.4f}')
+    # print(f'最终突触权重: {w:.4f}')
+    
+    
+    # 示例脉冲序列
+    sa = [0, 1, 0, 0, 1, 0]  # 神经元A的脉冲序列
+    sb = [0, 0, 1, 0, 0, 1]  # 神经元B的脉冲序列
+    w = 0.5  # 初始权重
+
+    # 更新权重
+    updated_w = stdp_with_window(sa, sb, w, learning_rate=0.1)
+    print(f"更新后的权重: {updated_w}")
