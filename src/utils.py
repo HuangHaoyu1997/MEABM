@@ -2,6 +2,11 @@ import numpy as np
 from config import Configuration
 from src.agent import agent, gauss_dist
 
+def moving_average(array, window_size=20):
+    ret = np.cumsum(array, dtype=float)
+    ret[window_size:] = ret[window_size:] - ret[:-window_size]
+    return ret[window_size - 1:] / window_size
+
 def gini_coefficient(income_list:list[float]) -> float:
     sorted_income = sorted(income_list) # 排序收入列表
     n = len(sorted_income)

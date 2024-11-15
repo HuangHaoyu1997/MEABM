@@ -43,7 +43,9 @@ if __name__ == '__main__':
         logs_intervention.append(simulation(config_regulation, intervention=True))
         logs_no_intervention.append(simulation(config_no_regulation, intervention=False))
     plot_bar('./figs/bar-event-intervention1.svg', logs_intervention, logs_no_intervention, config_no_regulation)
-    
+    import pickle
+    with open('./data/logs_intervention.pkl', 'wb') as f:
+        pickle.dump(logs_intervention, f)
     # config.seed = 123456
     # logs = []
     # for i in range(5):
