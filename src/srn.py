@@ -55,7 +55,7 @@ class EventDrivenConceptNeuron:
         return spike
 
 class TransmissionNeuron:
-    def __init__(self, v_th, m_init, m_tau, m_reset, beta=0.5005):
+    def __init__(self, v_th, m_init, m_tau, m_reset=0, beta=0.5005):
         '''
         beta: input scaling factor
         '''
