@@ -55,7 +55,7 @@ Ws = []
 fig = plt.figure(figsize=(10, 5))
 gs = GridSpec(20, 1)
 ax = fig.add_subplot(gs[0, 0]); ax.plot(simu_GDP, '*'); ax.set_title('simulated data')
-ax = fig.add_subplot(gs[1, 0]); ax.plot(yts[:, channel], '.');   ax.set_title(f'Concept Neuron vth={ConceptNeurons[channel].v_th}')
+ax = fig.add_subplot(gs[1, 0]); ax.plot(yts[:, channel], '.'); ax.set_title(f'Concept Neuron vth={ConceptNeurons[channel].v_th}')
 count = 0
 for i, neuron in enumerate(tran_neurons):
     spikes = [neuron.fire(yts[t, channel]) for t in range(length)]
