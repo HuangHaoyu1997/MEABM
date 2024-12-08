@@ -14,7 +14,7 @@ def cointegration_test(series1, series2):
     else:
         print(p_value, "不存在协整关系，考虑使用 VAR")
 
-def adf_test(series: list[float]):
+def adf_test(series: list[float], verbose=False):
     '''
     检验序列series是否平稳
     input: list[float]
@@ -30,18 +30,19 @@ def adf_test(series: list[float]):
     #     print(f'   {key}: {value}')
     
     if result[1] <= 0.05:
-        print(f"p-value: {result[1]}, 拒绝原假设, 序列是平稳的")
+        if verbose: print(f"p-value: {result[1]}, 拒绝原假设, 序列是平稳的")
         return True
     else:
-        print(f"p-value: {result[1]}, 无法拒绝原假设, 序列是非平稳的")
+        if verbose: print(f"p-value: {result[1]}, 无法拒绝原假设, 序列是非平稳的")
         return False
 
-def granger_causality_test(series1, series2, max_lag=12):
+def granger_causality_test(series, max_lag=12):
     '''
     检查series1与series2之间是否存在Granger因果关系
     '''
     from statsmodels.tsa.stattools import grangercausalitytests
-    test_result = grangercausalitytests(series1, series2, maxlag=max_lag, verbose=False)
+    # print(max_lag)
+    test_result = grangercausalitytests(series, maxlag=max_lag, verbose=False)
 
     # 输出结果
     for lag, results in test_result.items():
