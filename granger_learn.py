@@ -3,7 +3,7 @@ import pandas as pd
 import pickle
 from statsmodels.tsa.api import VAR
 from statsmodels.tsa.vector_ar.vecm import VECM
-from src.tools import *
+from src.tools import granger_causality_test, adf_test
 np.random.seed(0)
 
 # 加载数据

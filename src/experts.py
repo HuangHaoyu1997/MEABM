@@ -1,5 +1,5 @@
 from config import Configuration
-from api_key import api_key
+from src.api_key import api_key
 import cv2, base64, requests
 
 def get_expert_response(img, sys_prompt:str, user_prompt:str, config:Configuration):
