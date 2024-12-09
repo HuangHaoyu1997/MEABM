@@ -68,3 +68,52 @@ for key in data_dict.keys():
     print(key)
     granger_causality_test(data[[key, 'production']], 3)
     print('\n\n\n')
+
+
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm
+from statsmodels.tsa.stattools import adfuller
+from statsmodels.tsa.vector_ar.vecm import VECM, coint_johansen
+
+# 生成示例数据
+np.random.seed(0)
+n = 100
+x = np.random.normal(size=n).cumsum()  # 非平稳序列
+y = 0.5 * x + np.random.normal(size=n).cumsum()  # 共整合序列
+
+# 创建 DataFrame
+data = pd.DataFrame({'x': x, 'y': y})
+
+# 检查平稳性（ADF检验）
+def adf_test(series):
+    result = adfuller(series)
+    print(f'ADF Statistic: {result[0]}')
+    print(f'p-value: {result[1]}')
+
+print("ADF Test for x:")
+adf_test(data['x'])
+print("\nADF Test for y:")
+adf_test(data['y'])
+
+# 进行Johansen共整合检验
+coint_test = coint_johansen(data, det_order=0, k_ar_diff=1)
+print("\nJohansen test statistics:")
+print(coint_test.lr1)  # 统计量
+print(coint_test.cvt)   # 临界值
+
+# 选择滞后期
+lag_order = 1  # 根据需要选择合适的滞后期
+
+# 建立VECM模型
+model = VECM(data, k_ar_diff=lag_order, coint_rank=1)
+vecm_fit = model.fit()
+
+# 输出模型结果
+print("\nVECM Summary:")
+print(vecm_fit.summary())
+
+# 进行格兰杰因果关系检验
+granger_test = vecm_fit.test_causality('x', 'y', kind='wald')
+print("\nGranger Causality Test Result:")
+print(granger_test)
