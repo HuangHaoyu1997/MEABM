@@ -37,22 +37,22 @@ def stdp_with_window(sa, sb, w, dt_positive=2, dt_negative=2, learning_rate=0.01
         i, j = 0, 0  # 分别指向A和B的脉冲序列
         while i < len(spikes_A) and j < len(spikes_B):
             t_A, t_B = spikes_A[i], spikes_B[j]
-            time_difference = t_B - t_A # 计算时间差
+            time_diff = t_B - t_A # 计算时间差
             
             # 正向STDP
-            if 0 < time_difference <= dt_positive and time_difference <= time_window:
-                w += learning_rate * (1.0 - time_difference / dt_positive)  # 使用线性衰减
-                # w += learning_rate * np.exp(-time_difference / dt_positive)
+            if 0 < time_diff <= dt_positive and time_diff <= time_window:
+                w += learning_rate * (1.0 - time_diff / dt_positive)  # 使用线性衰减
+                # w += learning_rate * np.exp(-time_diff / dt_positive)
                 i += 1  # A的脉冲已经处理，移动到下一个脉冲
-            elif time_difference > dt_positive:
+            elif time_diff > dt_positive:
                 # A的脉冲在B的脉冲之前，并且超出了正向窗口，移动A的指针
                 i += 1
             
             # 负向STDP
-            else:  # time_difference <= 0
-                if -dt_negative <= time_difference < 0 and -time_difference <= time_window:
-                    w -= learning_rate * (1.0 + time_difference / dt_negative)  # 使用线性增加
-                    # w -= learning_rate * np.exp(time_difference / dt_negative)
+            else:  # time_diff <= 0
+                if -dt_negative <= time_diff < 0 and -time_diff <= time_window:
+                    w -= learning_rate * (1.0 + time_diff / dt_negative)  # 使用线性增加
+                    # w -= learning_rate * np.exp(time_diff / dt_negative)
                 j += 1 # 如果B的脉冲早于A的脉冲，移动B的指针
         w = max(0.0, min(w, 1.0))  # 假设权重在0到1之间
         return w

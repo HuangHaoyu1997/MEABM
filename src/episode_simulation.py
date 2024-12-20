@@ -156,7 +156,7 @@ def simulation(config:Configuration|EconomicCrisisConfig, intervention=False):
         # consumption in random order 随 机 顺 序 消 费 #
         ################################################
         total_money, total_quantity, deposits = consumption(config, agents, F.G, F.P, deepcopy(B.deposits))
-        F.capital += total_money * (1 - config.tax_rate_good)
+        F.capital += total_money * (1 - config.tax_rate_good) # enterprise income after business tax
         # print(t, '总消费金额: ', total_money)
         
         ######################################################
