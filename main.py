@@ -12,7 +12,7 @@ if __name__ == '__main__':
     from config import Configuration
     from time import time
     import pickle
-    
+    name = input('Please input the name of the experiment: ')
     ####################################### 单 次 实 验 #######################################
     # config = Configuration()
     # t1 = time()
@@ -33,20 +33,23 @@ if __name__ == '__main__':
     
     
     ####################################### 对 照 试 验 #######################################
-    config_no_regulation = deepcopy(EconomicCrisisConfig())
-    config_no_regulation.seed = 123456
     config_regulation = deepcopy(EconomicCrisisConfig()); config_regulation.seed = 123456
-    # config_no_regulation = EconomicCrisisConfig(); config_no_regulation.seed = 123456
-    logs_intervention, logs_no_intervention = [], []
+    config_no_regulation = deepcopy(EconomicCrisisConfig()); config_no_regulation.seed = 123456
+    logs_PSRN, logs_Taylor, logs_Fixed = [], [], []
     for i in range(5):
         print(f'Simulation {i+1}/5')
         config_regulation.seed += i; config_no_regulation.seed += i
-        logs_intervention.append(simulation(config_regulation, intervention=True))
-        logs_no_intervention.append(simulation(config_no_regulation, intervention=False))
-    plot_bar('./figs/bar-event-intervention1.svg', logs_intervention, logs_no_intervention, config_no_regulation)
+        logs_PSRN.append(simulation(config_regulation, intervention=True, rate_change=True))
+        logs_Taylor.append(simulation(config_no_regulation, intervention=False, rate_change=True))
+        logs_Fixed.append(simulation(config_no_regulation, intervention=False, rate_change=False))
+    # plot_bar(f'./figs/{name}.pdf', logs_intervention, logs_no_intervention, config_no_regulation)
     
-    # with open('./data/logs_intervention.pkl', 'wb') as f:
-    #     pickle.dump(logs_intervention, f)
+    with open(f'./data/logs_PSRN_{name}.pkl', 'wb') as f:
+        pickle.dump(logs_PSRN, f)
+    with open(f'./data/logs_Taylor_{name}.pkl', 'wb') as f:
+        pickle.dump(logs_Taylor, f)
+    with open(f'./data/logs_Fixed_{name}.pkl', 'wb') as f:
+        pickle.dump(logs_Fixed, f)
     
     # config.seed = 123456
     # logs = []

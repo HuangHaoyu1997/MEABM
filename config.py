@@ -35,8 +35,8 @@ class Configuration:
         ##           银行模型参数           ##
         #####################################
         self.rn = 0.01 # 0.01         # natural interest rate 自然利率
-        self.pi_t = 0.05 # 0.02        # target inflation rate 目标通膨率
-        self.un = 0.05 # 0.04          # natural unemployment rate 自然失业率
+        self.pi_t = 0.05 # 0.02       # target inflation rate 目标通膨率
+        self.un = 0.05 # 0.04         # natural unemployment rate 自然失业率
         self.alpha_pi = 1.0
         self.alpha_u = 1.0
         
@@ -104,8 +104,8 @@ class EconomicCrisisConfig(Configuration):
         #####################################
         ##          Agent模型参数          ##
         #####################################
-        self.pw_low = 0.85
-        self.pw_high = 0.45
+        self.pw_low = 0.45
+        self.pw_high = 0.85
 
 class ReconstructionConfig(Configuration):
     '''

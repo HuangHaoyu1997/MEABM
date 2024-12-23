@@ -1,7 +1,83 @@
 import numpy as np
 from config import Configuration
 from src.agent import agent, gauss_dist
+import cv2
+import matplotlib.pyplot as plt
 
+
+def plot_one_fig(x_PSRN, x_Taylor, x_Fixed, name=''):
+    plt.figure(figsize=(10, 8))
+    x_PSRN_mean = np.mean(x_PSRN, axis=0)
+    x_Taylor_mean = np.mean(x_Taylor, axis=0)
+    x_Fixed_mean = np.mean(x_Fixed, axis=0)
+    x_PSRN_min = x_PSRN_mean - np.std(x_PSRN, axis=0)
+    x_PSRN_max = x_PSRN_mean + np.std(x_PSRN, axis=0)
+    x_Taylor_min = x_Taylor_mean - np.std(x_Taylor, axis=0)
+    x_Taylor_max = x_Taylor_mean + np.std(x_Taylor, axis=0)
+    x_Fixed_min = x_Fixed_mean - np.std(x_Fixed, axis=0)
+    x_Fixed_max = x_Fixed_mean + np.std(x_Fixed, axis=0)
+
+
+    plt.axvline(x=Configuration().event_start, color='r', linestyle='--')
+    plt.axvline(x=Configuration().event_end, color='r', linestyle='--')
+    plt.xlim(-20, Configuration().num_time_steps+20)
+
+
+    plt.plot(x_PSRN_mean, label='PSRN')
+    plt.plot(x_Taylor_mean, label='Taylor')
+    plt.plot(x_Fixed_mean, label='Fixed')
+    plt.fill_between(range(len(x_PSRN_mean)), x_PSRN_min, x_PSRN_max, alpha=0.3, label='PSRN')
+    plt.fill_between(range(len(x_Taylor_mean)), x_Taylor_min, x_Taylor_max, alpha=0.3, label='Taylor')
+    plt.fill_between(range(len(x_Fixed_mean)), x_Fixed_min, x_Fixed_max, alpha=0.3, label='Fixed')
+    plt.tick_params(axis='both', which='major', labelsize=16)
+    plt.xlabel('Simulation step/Month', fontsize=16)
+    plt.ylabel(name, fontsize=16)
+    plt.grid()
+    plt.legend(fontsize=16)
+    plt.tight_layout()
+    plt.savefig(f'figs/{name}.pdf')
+    plt.show()
+
+def ornstein_uhlenbeck_process(theta, mu, sigma, x0, dt, n_steps):
+    """
+    Simulate an Ornstein-Uhlenbeck process.
+
+    Parameters:
+    - theta: Speed of reversion to the mean
+    - mu: Long-term mean
+    - sigma: Volatility parameter
+    - x0: Initial value
+    - dt: Time increment
+    - n_steps: Number of steps to simulate
+
+    Returns:
+    - x: Array of simulated values
+    """
+    x = np.zeros(n_steps)
+    x[0] = x0
+    if isinstance(mu, (int, float)) and isinstance(theta, (int, float)):
+        for i in range(1, n_steps):
+            dx = theta * (mu - x[i-1]) * dt + sigma * np.sqrt(dt) * np.random.normal()
+            x[i] = x[i-1] + dx
+        return x
+    elif not isinstance(mu, (int, float)) and isinstance(theta, (int, float)):
+        for i in range(1, n_steps):
+            dx = theta * (mu[i-1] - x[i-1]) * dt + sigma * np.sqrt(dt) * np.random.normal()
+            x[i] = x[i-1] + dx
+        return x
+    elif isinstance(mu, (int, float)) and not isinstance(theta, (int, float)):
+        for i in range(1, n_steps):
+            dx = theta[i-1] * (mu - x[i-1]) * dt + sigma * np.sqrt(dt) * np.random.normal()
+            x[i] = x[i-1] + dx
+        return x
+    elif not isinstance(mu, (int, float)) and not isinstance(theta, (int, float)):
+        for i in range(1, n_steps):
+            dx = theta[i-1] * (mu[i-1] - x[i-1]) * dt + sigma * np.sqrt(dt) * np.random.normal()
+            x[i] = x[i-1] + dx
+        return x
+    else:
+        raise ValueError('Invalid type for mu')
+    
 def moving_average(array, window_size=20):
     ret = np.cumsum(array, dtype=float)
     ret[window_size:] = ret[window_size:] - ret[:-window_size]
@@ -20,8 +96,7 @@ def gini_coefficient(income_list:list[float]) -> float:
 
 
 def split_img(img_path:str):
-    import cv2
-    import matplotlib.pyplot as plt
+    
     img = cv2.imread(img_path)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     
@@ -377,8 +452,6 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
     plt.savefig(img_name) # , dpi=300
 
 def plot_log(img_name:str, log:dict, config:Configuration):
-    import matplotlib.pyplot as plt
-    
     fig, axs = plt.subplots(3, 5, figsize=(30, 16))
     # fig.suptitle('xxx')
     for i in range(3):

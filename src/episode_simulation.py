@@ -8,7 +8,7 @@ from src.utils import taxation, inflation, GDP, unemployment, init_agents, imbal
 from src.market import consumption
 
 
-def simulation(config:Configuration|EconomicCrisisConfig, intervention=False):
+def simulation(config:Configuration|EconomicCrisisConfig, intervention=False, rate_change=False):
     '''
     one episode of simulation
     '''
@@ -177,7 +177,7 @@ def simulation(config:Configuration|EconomicCrisisConfig, intervention=False):
             B.interest(agents)                # interest payment
             unem_rate = unemployment(log)
             infla_rate = inflation(log)
-            B.rate_adjustment(unem_rate, infla_rate) 
+            if rate_change: B.rate_adjustment(unem_rate, infla_rate) 
             Nominal_GDP = GDP(log)
         
         log[t] = {
