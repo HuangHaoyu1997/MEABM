@@ -2,7 +2,7 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 from src.srn import NECN, encoding
-
+from src.utils import ornstein_uhlenbeck_process
 
 
 
@@ -23,6 +23,11 @@ ou_process1 = ornstein_uhlenbeck_process(ou_process, mu, sigma, x0, dt, n_steps)
 
 series = (ou_process-np.min(ou_process)+1)*100
 series = [series[i*10] for i in range(n_steps//10)]
+
+plt.figure(figsize=(10, 10))
+plt.plot(ou_process)
+plt.grid()
+plt.show()
 
 plt.subplot(5, 1, 1)
 plt.plot([i for i in range(100)], series)  # np.linspace(0, n_steps * dt, n_steps)

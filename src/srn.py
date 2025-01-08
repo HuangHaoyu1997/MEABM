@@ -1,3 +1,5 @@
+import numpy as np
+
 # 事件驱动的脉冲编码概念神经元
 class PECN:
     '''
@@ -80,6 +82,9 @@ def encoding(input, concept_neurons: list[EventDrivenConceptNeuron|PECN|NECN]):
 
 
 if __name__ == '__main__':
+    import pickle
+    import matplotlib.pyplot as plt
+
     ConceptNeurons = [
         EventDrivenConceptNeuron(v_th=1, m_init=0),
         EventDrivenConceptNeuron(v_th=5, m_init=0),
@@ -90,3 +95,59 @@ if __name__ == '__main__':
     print(ConceptNeurons[0].m)
     output = encoding(25.3, ConceptNeurons)
     print(ConceptNeurons[0].m)
+
+    name = '20241222'
+    with open(f'/home/hhy/MEABM/data/logs_PSRN_{name}.pkl', 'rb') as f:
+        logs_PSRN = pickle.load(f)
+    
+    # series = np.array([[log[key]['GDP'] for key in log.keys()] for log in logs_PSRN]) / 1e5
+    series = np.array([[log[key]['unemployment_rate'] for key in log.keys()] for log in logs_PSRN])
+    print(series.shape)
+    plt.subplot(5, 1, 1)
+    plt.plot(series[0,:])  # np.linspace(0, n_steps * dt, n_steps)
+    plt.grid(True)
+    plt.ylabel('GDP')
+
+    ConceptNeurons = [
+            # NECN(v_th=0.01),
+            # NECN(v_th=0.05),
+            # NECN(v_th=0.10),
+            # NECN(v_th=0.2),
+            PECN(v_th=0.009),
+            PECN(v_th=0.028),
+            PECN(v_th=0.05),
+            PECN(v_th=0.10),
+        ]
+    yts = []
+    for xt in series[0,:]:
+        yt, ConceptNeurons = encoding(xt, ConceptNeurons)
+        yts.append(yt)
+    yts = np.array(yts) # (200, 4)
+    print('yts.shape: ', yts.shape)
+
+    plt.subplot(5, 1, 2);plt.ylim(0, 1)
+    for i, value in enumerate(yts[:, 0]):
+        if value == 1:
+            plt.axvline(x=i, ymin=0, ymax=0.5, linestyle='-', linewidth=2)
+
+    plt.subplot(5, 1, 3);plt.ylim(0, 1)
+    for i, value in enumerate(yts[:, 1]):
+        if value == 1:
+            plt.axvline(x=i, ymin=0, ymax=0.5, linestyle='-', linewidth=2)
+
+    plt.subplot(5, 1, 4);plt.ylim(0, 1)
+    for i, value in enumerate(yts[:, 2]):
+        if value == 1:
+            plt.axvline(x=i, ymin=0, ymax=0.5, linestyle='-', linewidth=2)
+
+    plt.subplot(5, 1, 5);plt.ylim(0, 1)
+    for i, value in enumerate(yts[:, 3]):
+        if value == 1:
+            plt.axvline(x=i, ymin=0, ymax=0.5, linestyle='-', linewidth=2) #  color='b',
+    plt.xlabel('Time')
+
+    plt.xlim(-1, 101)
+
+
+    plt.savefig('/home/hhy/MEABM/data/GDP-Concept-Neuron.png')
+    plt.show()

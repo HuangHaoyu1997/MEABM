@@ -3,7 +3,11 @@ from config import Configuration
 from src.agent import agent, gauss_dist
 import cv2
 import matplotlib.pyplot as plt
-
+import base64
+def img2base64(img_path):
+    with open(img_path, 'rb') as img_file:
+        img_base = base64.b64encode(img_file.read()).decode('utf-8')
+    return img_base
 
 def plot_one_fig(x_PSRN, x_Taylor, x_Fixed, name=''):
     plt.figure(figsize=(10, 8))
