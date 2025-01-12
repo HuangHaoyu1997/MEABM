@@ -9,7 +9,7 @@ def img2base64(img_path):
         img_base = base64.b64encode(img_file.read()).decode('utf-8')
     return img_base
 
-def plot_one_fig(x_PSRN, x_Taylor, x_Fixed, name=''):
+def plot_one_fig(x_PSRN, x_Taylor, x_Fixed, name='', type='pdf', verbose=False, zh=True):
     plt.figure(figsize=(10, 8))
     x_PSRN_mean = np.mean(x_PSRN, axis=0)
     x_Taylor_mean = np.mean(x_Taylor, axis=0)
@@ -34,13 +34,14 @@ def plot_one_fig(x_PSRN, x_Taylor, x_Fixed, name=''):
     plt.fill_between(range(len(x_Taylor_mean)), x_Taylor_min, x_Taylor_max, alpha=0.3, label='Taylor')
     plt.fill_between(range(len(x_Fixed_mean)), x_Fixed_min, x_Fixed_max, alpha=0.3, label='Fixed')
     plt.tick_params(axis='both', which='major', labelsize=16)
-    plt.xlabel('Simulation step/Month', fontsize=16)
+    if zh: plt.xlabel('时间步/月', fontsize=16)
+    else: plt.xlabel('Simulation step/Month', fontsize=16)
     plt.ylabel(name, fontsize=16)
     plt.grid()
     plt.legend(fontsize=16)
     plt.tight_layout()
-    plt.savefig(f'figs/{name}.pdf')
-    plt.show()
+    plt.savefig(f'figs/{name}.{type}')
+    if verbose: plt.show()
 
 def ornstein_uhlenbeck_process(theta, mu, sigma, x0, dt, n_steps):
     """
