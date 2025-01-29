@@ -15,9 +15,30 @@ from src.market import consumption
 from src.utils import taxation, inflation, GDP, unemployment, init_agents, imbalance, gini_coefficient
 
 
-def step_simulation(config:Configuration, event:bool, intervention:bool, step:int, length:int, firm:firm, bank:bank, agents:list[agent], log:dict[int:dict]):
+def step_simulation(
+        config:Configuration, 
+        event:int, 
+        intervention:bool, 
+        step:int, 
+        length:int, 
+        firm:firm, 
+        bank:bank, 
+        agents:list[agent], 
+        log:dict[int:dict],
+        ):
     '''
     simulate several steps of a simulation.
+    config: Configuration file
+    event: int, event id2
+    intervention: bool, whether to apply intervention
+    step: int, current step
+    length: int, length of simulation steps
+    firm: firm object
+    bank: bank object
+    agents: list of agent objects
+    log: dict of logs
+
+
     '''
     random.seed(config.seed)
     np.random.seed(config.seed)
