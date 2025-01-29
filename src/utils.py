@@ -4,6 +4,33 @@ from src.agent import agent, gauss_dist
 import cv2
 import matplotlib.pyplot as plt
 import base64
+
+def generate_unique_pairs(M, num_pairs) -> list[tuple[int, int]]:
+    """
+    从给定的数字列表中生成指定数量的随机对，确保没有完全重复的对。
+    
+    参数：
+    - M: 智能体数量
+    - num_pairs: 要生成的对的数量
+    
+    返回：
+    - 生成的唯一对的列表
+    """
+    import random
+    numbers = list(range(M))  # 生成数字列表 [0, 1, ..., M-1]
+    # 存储生成的对
+    pairs = []
+    for _ in range(num_pairs):
+        while True:
+            # 随机选择两个不同的数字
+            pair = tuple(sorted(random.sample(numbers, 2)))
+            
+            # 检查是否和上一次生成的对完全相同
+            if not pairs or pair != pairs[-1]:
+                pairs.append(pair)
+                break
+    return pairs
+
 def img2base64(img_path):
     with open(img_path, 'rb') as img_file:
         img_base = base64.b64encode(img_file.read()).decode('utf-8')
