@@ -91,10 +91,10 @@ def step_simulation(
         #           ....@@@@.. ....@@@@@@...   ...      .@@@ ..........@@..........@@@@@@@@@@@@@. .       
         #       ...@@@@@@@.          ..@@@@@.      .....@@@..@@@@@@@@@@@@@@@@@. .................  
         if event == 1:
-            if t == config.event_start:
+            if t == config.event_start+1:
                 a_pw = [a.pw for a in agents]
 
-            if t >= config.event_start and t <= config.event_end:
+            if t >= config.event_start+1 and t <= config.event_end:
                 for a, pw in zip(agents, a_pw):
                     a.pw = (0.9 ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * pw # 在t=900时，就业意愿下降到t=500时的25%
             work_state = [a.work_decision() for a in agents] # work decision
@@ -229,10 +229,10 @@ def step_simulation(
         #   ..@@. .@...@@..@.  .@.  .@@. .@.  @@. .@@. . .@...@...@@   .@..@@.  . .@.         @@.         
         #   .@@.   ..@@@. .@@..@@. .@@.  .@.  .@@. .@@.  .@. .@...@@.@@@@@@@@.  . .@@@@@@@@@@@@@.
         
-        unique_pairs = generate_unique_pairs(config.num_agents, 2000)
+        unique_pairs = generate_unique_pairs(config.num_agents, 1000)
         for pair in unique_pairs:
             # print('before:', agents[pair[0]].pw, agents[pair[1]].pw)
-            update_flag = Deffuant_Weisbuch(agents[pair[0]], agents[pair[1]], 'w', 0.05, 0.002)
+            update_flag = Deffuant_Weisbuch(agents[pair[0]], agents[pair[1]], 'w', 0.05, 0.001)
             # if update_flag: print('after:', agents[pair[0]].pw, agents[pair[1]].pw, '\n')
 
         if t % 6 == 0 and t > 30:
@@ -283,7 +283,7 @@ if __name__ == '__main__':
                 'imbalance': 0.,
                 'inflation_rate': 0.,
                 'taxes': 0,
-                'unemployment_rate': 0.,
+                'unemployment_rate': 1-sum([a.l for a in agents0])/config.num_agents,
                 'deposit': {i: 0.0 for i in range(config.num_agents)},
                 'avg_wage': sum([a.w for a in agents0])/config.num_agents,
                 'GDP': 0.,
@@ -292,9 +292,10 @@ if __name__ == '__main__':
                 'gini': gini_coefficient([a.w for a in agents0]),
                 }
             }
-        F, B, agents, log = step_simulation(config, event=False, intervention=False, step=0, length=100, firm=deepcopy(F0), bank=deepcopy(B0), agents=deepcopy(agents0), log=deepcopy(log))
-        F, B, agents, log = step_simulation(config, event=False, intervention=False, step=100, length=200, firm=deepcopy(F), bank=deepcopy(B), agents=deepcopy(agents), log=deepcopy(log))
-        # print(max(list(log.keys())))
+        F, B, agents, log = step_simulation(config, event=1, intervention=False, step=0, length=100, firm=deepcopy(F0), bank=deepcopy(B0), agents=deepcopy(agents0), log=deepcopy(log))
+        F, B, agents, log = step_simulation(config, event=1, intervention=False, step=100, length=100, firm=deepcopy(F), bank=deepcopy(B), agents=deepcopy(agents), log=deepcopy(log))
+        F, B, agents, log = step_simulation(config, event=1, intervention=False, step=200, length=100, firm=deepcopy(F), bank=deepcopy(B), agents=deepcopy(agents), log=deepcopy(log))
+        print(i, max(list(log.keys())))
         logs.append(log)
         others.append([F, B, agents])
     
@@ -303,5 +304,7 @@ if __name__ == '__main__':
         config.seed = i
         F, B, agents, log = step_simulation(config, event=False, intervention=False, step=max(list(logs[0].keys())), length=100, firm=deepcopy(others[i][0]), bank=deepcopy(others[i][1]), agents=deepcopy(others[i][2]), log=deepcopy(logs[i]))
         logss.append(log)
-    # plot_log('./figs/log_step.png', log, config)
-    # plot_bar('./figs/bar_step.png', logss, None, config)
+    plot_log('./figs/log_step.png', log, config)
+    # import datetime
+    # plot_bar(f'./figs/bar_step_{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.png', logss, None, config)
+    
