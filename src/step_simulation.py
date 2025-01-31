@@ -7,7 +7,7 @@ sys.path.append(parent_dir) # 将上级目录添加到 sys.path
 import numpy as np
 import random
 from copy import deepcopy
-from config import Configuration # 现在可以导入上级目录的模块
+from config import Configuration, EconomicCrisisConfig, ReconstructionConfig, EconomicProsperityConfig
 from src.agent import agent
 from src.firm import firm
 from src.bank import bank   
@@ -91,12 +91,13 @@ def step_simulation(
         #           ....@@@@.. ....@@@@@@...   ...      .@@@ ..........@@..........@@@@@@@@@@@@@. .       
         #       ...@@@@@@@.          ..@@@@@.      .....@@@..@@@@@@@@@@@@@@@@@. .................  
         if event == 1:
-            if t == config.event_start+1:
-                a_pw = [a.pw for a in agents]
+            # if t == config.event_start:
+            #     a_pw = [a.pw for a in agents]
 
-            if t >= config.event_start+1 and t <= config.event_end:
-                for a, pw in zip(agents, a_pw):
-                    a.pw = (0.9 ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * pw # 在t=900时，就业意愿下降到t=500时的25%
+            if t > config.event_start and t <= config.event_end:
+                # print(t, log.keys())
+                for a, pw in zip(agents, log[config.event_start]['pw']):
+                    a.pw = (0.75 ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * pw # 在t=900时，就业意愿下降到t=500时的25%
             work_state = [a.work_decision() for a in agents] # work decision
 
 
@@ -203,6 +204,8 @@ def step_simulation(
             'year': t // 12.1 + 1,
             'work_state': work_state, 
             'wage': [a.w for a in agents],
+            'pw': [a.pw for a in agents0],
+            'pc': [a.pc for a in agents0],
             'price': firm.P, 
             'rate': bank.rate, 
             'production': production,
@@ -229,10 +232,10 @@ def step_simulation(
         #   ..@@. .@...@@..@.  .@.  .@@. .@.  @@. .@@. . .@...@...@@   .@..@@.  . .@.         @@.         
         #   .@@.   ..@@@. .@@..@@. .@@.  .@.  .@@. .@@.  .@. .@...@@.@@@@@@@@.  . .@@@@@@@@@@@@@.
         
-        unique_pairs = generate_unique_pairs(config.num_agents, 1000)
+        unique_pairs = generate_unique_pairs(config.num_agents, config.communications_num) # 总可能数(M-2)(M+1)/2≈5000
         for pair in unique_pairs:
             # print('before:', agents[pair[0]].pw, agents[pair[1]].pw)
-            update_flag = Deffuant_Weisbuch(agents[pair[0]], agents[pair[1]], 'w', 0.05, 0.001)
+            update_flag = Deffuant_Weisbuch(agents[pair[0]], agents[pair[1]], 'w', config.bounded_conf, config.opinion_fusion_factor)
             # if update_flag: print('after:', agents[pair[0]].pw, agents[pair[1]].pw, '\n')
 
         if t % 6 == 0 and t > 30:
@@ -276,6 +279,8 @@ if __name__ == '__main__':
             0:{
                 'year': 0,
                 'work_state': [a.l for a in agents0], 
+                'pw': [a.pw for a in agents0],
+                'pc': [a.pc for a in agents0],
                 'wage': [a.w for a in agents0],
                 'price': F0.P, 
                 'rate': B0.rate, 
@@ -290,20 +295,25 @@ if __name__ == '__main__':
                 'capital': F0.capital,
                 'assets': B0.assets,
                 'gini': gini_coefficient([a.w for a in agents0]),
+                
+                
                 }
             }
         F, B, agents, log = step_simulation(config, event=1, intervention=False, step=0, length=100, firm=deepcopy(F0), bank=deepcopy(B0), agents=deepcopy(agents0), log=deepcopy(log))
         F, B, agents, log = step_simulation(config, event=1, intervention=False, step=100, length=100, firm=deepcopy(F), bank=deepcopy(B), agents=deepcopy(agents), log=deepcopy(log))
         F, B, agents, log = step_simulation(config, event=1, intervention=False, step=200, length=100, firm=deepcopy(F), bank=deepcopy(B), agents=deepcopy(agents), log=deepcopy(log))
+        F, B, agents, log = step_simulation(config, event=1, intervention=False, step=300, length=100, firm=deepcopy(F), bank=deepcopy(B), agents=deepcopy(agents), log=deepcopy(log))
+        F, B, agents, log = step_simulation(config, event=1, intervention=False, step=400, length=100, firm=deepcopy(F), bank=deepcopy(B), agents=deepcopy(agents), log=deepcopy(log))
+        F, B, agents, log = step_simulation(config, event=1, intervention=False, step=500, length=100, firm=deepcopy(F), bank=deepcopy(B), agents=deepcopy(agents), log=deepcopy(log))
         print(i, max(list(log.keys())))
         logs.append(log)
         others.append([F, B, agents])
     
-    logss = []
-    for i in range(5):
-        config.seed = i
-        F, B, agents, log = step_simulation(config, event=False, intervention=False, step=max(list(logs[0].keys())), length=100, firm=deepcopy(others[i][0]), bank=deepcopy(others[i][1]), agents=deepcopy(others[i][2]), log=deepcopy(logs[i]))
-        logss.append(log)
+    # logss = []
+    # for i in range(5):
+    #     config.seed = i
+    #     F, B, agents, log = step_simulation(config, event=False, intervention=False, step=max(list(logs[0].keys())), length=100, firm=deepcopy(others[i][0]), bank=deepcopy(others[i][1]), agents=deepcopy(others[i][2]), log=deepcopy(logs[i]))
+    #     logss.append(log)
     plot_log('./figs/log_step.png', log, config)
     # import datetime
     # plot_bar(f'./figs/bar_step_{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.png', logss, None, config)

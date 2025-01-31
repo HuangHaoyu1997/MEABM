@@ -17,16 +17,23 @@ def Deffuant_Weisbuch(A: agent, B: agent, opinion: str, eps: float, mu: float):
     '''
     if opinion == 'w': # work_propensity
         if abs(A.pw - B.pw) < eps:
-            A_opinion = (1 - mu) * A.pw + mu * (B.pw - A.pw)
-            B_opinion = (1 - mu) * B.pw + mu * (A.pw - B.pw)
-
+            if random.random() < 0.95: # 大概率观点融合
+                A_opinion = (1 - mu) * A.pw + mu * (B.pw - A.pw)
+                B_opinion = (1 - mu) * B.pw + mu * (A.pw - B.pw)
+            else: # 小概率观点极化
+                A_opinion = (1 - mu) * A.pw + mu * (A.pw - B.pw)
+                B_opinion = (1 - mu) * B.pw + mu * (B.pw - A.pw)
             A.pw = A_opinion
             B.pw = B_opinion
             return True
     elif opinion == 'c': # consume_propensity
         if abs(A.pc - B.pc) < eps:
-            A_opinion = (1 - mu) * A.pc + mu * (B.pc - A.pc)
-            B_opinion = (1 - mu) * B.pc + mu * (A.pc - B.pc)
+            if random.random() < 0.95: # 大概率观点融合
+                A_opinion = (1 - mu) * A.pc + mu * (B.pc - A.pc)
+                B_opinion = (1 - mu) * B.pc + mu * (A.pc - B.pc)
+            else: # 小概率观点极化
+                A_opinion = (1 - mu) * A.pc + mu * (A.pc - B.pc)
+                B_opinion = (1 - mu) * B.pc + mu * (B.pc - A.pc)
             A.pc = A_opinion
             B.pc = B_opinion
             return True
