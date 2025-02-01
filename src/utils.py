@@ -153,13 +153,16 @@ def split_img(img_path:str):
     return [price_fig, interest_rate_fig, employment_fig, inflation_fig, gini_fig, imbalance_fig, capital_fig, production_fig, gdp_fig, avg_deposit_fig, avg_wage_fig, avg_tax_fig, std_wage_fig]
 
 def init_agents(config:Configuration) -> list[agent]:
-    agent_list = [agent(id=i, 
+    agent_list = [
+        agent(id=i, 
                   pw=np.random.uniform(config.pw_low, config.pw_high), 
                   pc=np.random.uniform(config.pc_low, config.pc_high), 
                   gamma=config.gamma, 
                   beta=config.gamma,
                   pw_delta=config.pw_delta,
-                  pc_delta=config.pc_delta,) for i in range(config.num_agents)]
+                  pc_delta=config.pc_delta,
+                  A=np.random.randn()*0.2 + 1.0,
+                  ) for i in range(config.num_agents)]
     wages = gauss_dist(config.wage_mean, config.wage_std, config.num_agents)
     for a, w in zip(agent_list, wages):
         a.w = w

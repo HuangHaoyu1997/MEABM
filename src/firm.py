@@ -25,15 +25,19 @@ class firm:
         self.k_capital = k_capital
         self.cap4product = 5e-5 * init_cap  # init capital for production
 
-    def produce(self, agent_list:list[agent],):
+    def produce(self, agent_list:list[agent], heterogeneity:bool=False):
         '''
         production of essential goods
         
         '''
         # random production
         workers = sum([a.l for a in agent_list])
-        production = 168 * self.A * (1 + random.random() * 0.05) * \
+        if not heterogeneity:
+            production = 168 * self.A * (1 + random.random() * 0.05) * \
                                     (workers**self.k_labor) * \
+                                    (self.cap4product ** self.k_capital)
+        else:
+            production = sum([a.l * a.A**self.k_labor * (1 + random.random() * 0.05) for a in agent_list]) * \
                                     (self.cap4product ** self.k_capital)
         
         self.G += production

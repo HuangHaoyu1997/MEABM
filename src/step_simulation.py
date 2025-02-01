@@ -148,7 +148,7 @@ def step_simulation(
         
         ########################## 事 件 结 束 ##########################
         
-        production = firm.produce(agents)               # 生产
+        production = firm.produce(agents, heterogeneity=False)               # 生产
         wages = firm.pay_wage(agents)                   # 支付工资
         taxes, wages_after_tax = taxation(wages)        # 计算个税
         

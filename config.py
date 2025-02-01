@@ -65,7 +65,7 @@ class Configuration:
         #####################################
         self.tax_rate_good = 0.02   # 向企业征收营业税
         self.communications_num = 1000 # 智能体之间两两沟通的次数
-        self.bounded_conf = 0.02 # bounded confidence, opinion差值小于此阈值的才会发生opinion fusion
+        self.bounded_conf = 0.05 # bounded confidence, opinion比值小于此阈值（百分比）的才会发生opinion fusion
         self.opinion_fusion_factor = 0.001 # opinion fusion factor
         
         

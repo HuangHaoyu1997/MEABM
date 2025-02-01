@@ -27,6 +27,7 @@ class agent:
                  beta:float, 
                  pw_delta:float, 
                  pc_delta:float,
+                 A: float,
                  ):
         self.id = id
         self.pw = pw         # probability of working
@@ -38,6 +39,7 @@ class agent:
         self.beta = beta
         self.pw_delta = pw_delta
         self.pc_delta = pc_delta
+        self.A = A           # productivity level
         
         
     def work_decision(self,):
