@@ -19,6 +19,7 @@ def step_simulation(
         config:Configuration, 
         event:int, 
         intervention:bool, 
+        action: float,
         step:int, 
         length:int, 
         firm:firm, 
@@ -41,9 +42,8 @@ def step_simulation(
 
 
     '''
-    random.seed(config.seed)
-    np.random.seed(config.seed)
-    
+    # random.seed(config.seed)
+    # np.random.seed(config.seed)
     unem_rate = log[step]['unemployment_rate']
     infla_rate = log[step]['inflation_rate']
     Nominal_GDP = log[step]['GDP']
@@ -157,15 +157,17 @@ def step_simulation(
             bank.deposit(a.id, w + sum(taxes)/config.num_agents) # 再分配
             
             ########################## 干 预 开 始 ##########################
-            if t >= config.intervent_start and t <= config.intervent_end and intervention:
-                bank.deposit(a.id, w + sum(taxes)/config.num_agents + 200) # 0.04*B.deposits[a.id] redistribution
-            else:
-                bank.deposit(a.id, w + sum(taxes)/config.num_agents)
+            # if t >= config.intervent_start and t <= config.intervent_end and intervention:
+            #     bank.deposit(a.id, w + sum(taxes)/config.num_agents + 200) # 0.04*B.deposits[a.id] redistribution
+            # else:
+            #     bank.deposit(a.id, w + sum(taxes)/config.num_agents)
             ########################## 干 预 结 束 ##########################
         
         ########################## 干 预 开 始 ##########################
-        if t >= config.intervent_start and t <= config.intervent_end and intervention:
-            bank.natural_rate = max(bank.natural_rate * 1.002, 0.1)
+        # if t >= config.intervent_start and t <= config.intervent_end and intervention:
+        #     bank.natural_rate = max(bank.natural_rate * 1.002, 0.1)
+        if intervention:
+            bank.rate = action
         ########################## 干 预 结 束 ##########################
         
         if t % 3 == 0: imba = imbalance(agents, firm.P, firm.G, bank.deposits)
@@ -204,8 +206,8 @@ def step_simulation(
             'year': t // 12.1 + 1,
             'work_state': work_state, 
             'wage': [a.w for a in agents],
-            'pw': [a.pw for a in agents0],
-            'pc': [a.pc for a in agents0],
+            'pw': [a.pw for a in agents],
+            'pc': [a.pc for a in agents],
             'price': firm.P, 
             'rate': bank.rate, 
             'production': production,

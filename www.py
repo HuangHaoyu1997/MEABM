@@ -6,18 +6,18 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 from torch.distributions import Beta
-from src.baselines import MEABM_gym
+
 class Args:
     exp_name = os.path.basename(__file__).rstrip(".py")
     seed = 123
     torch_deterministic = True
     cuda = True
-    env_id = 'Ant-v5' # 'InvertedPendulum-v5' # "HalfCheetah-v5"  # 'BipedalWalker-v3' # "LunarLanderContinuous-v3" # 
+    env_id = "HalfCheetah-v5" # 'Ant-v5' # 'InvertedPendulum-v5' # "HalfCheetah-v5"  # 'BipedalWalker-v3' # "LunarLanderContinuous-v3" # 
 
     total_timesteps = 1000000
-    learning_rate = 3e-4
-    num_envs = 4 # the number of parallel game environments
-    num_steps = 500 # the number of steps to run in each environment per policy rollout
+    learning_rate = 8e-4
+    num_envs = 8 # the number of parallel game environments
+    num_steps = 2048 # the number of steps to run in each environment per policy rollout
     anneal_lr = True
     gae = True
     gae_lambda = 0.95
@@ -36,20 +36,18 @@ class Args:
 
 def make_env(env_id, seed):
     def thunk():
-        # env = gym.make(env_id)
-        env = MEABM_gym(event=1, step_len=50)
+        env = gym.make(env_id)
         env = gym.wrappers.RecordEpisodeStatistics(env)
         env = gym.wrappers.ClipAction(env)
         env = gym.wrappers.NormalizeObservation(env)
         env = gym.wrappers.TransformObservation(env, lambda obs: np.clip(obs, -10, 10), None)
-        env = gym.wrappers.NormalizeReward(env)
-        env = gym.wrappers.TransformReward(env, lambda reward: np.clip(reward, -10, 10))
+        # env = gym.wrappers.NormalizeReward(env)
+        # env = gym.wrappers.TransformReward(env, lambda reward: np.clip(reward, -10, 10))
         env.reset(seed=seed)
         env.action_space.seed(seed)
         env.observation_space.seed(seed)
         return env
     return thunk
-
 
 
 def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
@@ -60,11 +58,11 @@ def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
 class Agent(nn.Module):
     def __init__(self, envs):
         super().__init__()
-        self.fc1 = layer_init(nn.Linear(np.array(envs.single_observation_space.shape).prod(), 64))
-        self.fc2 = layer_init(nn.Linear(64, 64))
+        self.fc1 = layer_init(nn.Linear(np.array(envs.single_observation_space.shape).prod(), 128))
+        self.fc2 = layer_init(nn.Linear(128, 64))
         self.critic = layer_init(nn.Linear(64, 1), std=1.0)
-        self.actor_A = layer_init(nn.Linear(64, 1), std=0.01) # np.prod(envs.single_action_space.shape
-        self.actor_B = layer_init(nn.Linear(64, 1), std=0.01)
+        self.actor_A = layer_init(nn.Linear(64, np.prod(envs.single_action_space.shape)), std=0.01)
+        self.actor_B = layer_init(nn.Linear(64, np.prod(envs.single_action_space.shape)), std=0.01)
         
     def get_value(self, x):
         x = torch.tanh(self.fc1(x))
@@ -82,60 +80,6 @@ class Agent(nn.Module):
             action = probs.sample()
         return action, probs.log_prob(action).sum(1), probs.entropy().sum(1), self.get_value(xx)
 
-def ppo_train(args: Args, agent:Agent, ):
-    b_inds = np.arange(args.batch_size)
-    clipfracs = []
-    for epoch in range(args.update_epochs):
-        np.random.shuffle(b_inds)
-        for start in range(0, args.batch_size, args.minibatch_size):
-            end = start + args.minibatch_size
-            mb_inds = b_inds[start:end]
-
-            _, newlogprob, entropy, newvalue = agent.get_action_and_value(b_obs[mb_inds], b_actions[mb_inds])
-            logratio = newlogprob - b_logprobs[mb_inds]
-            ratio = logratio.exp()
-
-            with torch.no_grad():
-                # calculate approx_kl http://joschu.net/blog/kl-approx.html
-                old_approx_kl = (-logratio).mean()
-                approx_kl = ((ratio - 1) - logratio).mean()
-                clipfracs += [((ratio - 1.0).abs() > args.clip_coef).float().mean().item()]
-
-            mb_advantages = b_advantages[mb_inds]
-            if args.norm_adv:
-                mb_advantages = (mb_advantages - mb_advantages.mean()) / (mb_advantages.std() + 1e-8)
-
-            # Policy loss
-            pg_loss1 = -mb_advantages * ratio
-            pg_loss2 = -mb_advantages * torch.clamp(ratio, 1 - args.clip_coef, 1 + args.clip_coef)
-            pg_loss = torch.max(pg_loss1, pg_loss2).mean()
-
-            # Value loss
-            newvalue = newvalue.view(-1)
-            if args.clip_vloss:
-                v_loss_unclipped = (newvalue - b_returns[mb_inds]) ** 2
-                v_clipped = b_values[mb_inds] + torch.clamp(
-                    newvalue - b_values[mb_inds],
-                    -args.clip_coef,
-                    args.clip_coef,
-                )
-                v_loss_clipped = (v_clipped - b_returns[mb_inds]) ** 2
-                v_loss_max = torch.max(v_loss_unclipped, v_loss_clipped)
-                v_loss = 0.5 * v_loss_max.mean()
-            else:
-                v_loss = 0.5 * ((newvalue - b_returns[mb_inds]) ** 2).mean()
-
-            entropy_loss = entropy.mean()
-            loss = pg_loss - args.ent_coef * entropy_loss + v_loss * args.vf_coef
-
-            optimizer.zero_grad()
-            loss.backward()
-            nn.utils.clip_grad_norm_(agent.parameters(), args.max_grad_norm)
-            optimizer.step()
-
-        if args.target_kl is not None:
-            if approx_kl > args.target_kl: break
-        return agent
 
 if __name__ == "__main__":
     import datetime
@@ -148,8 +92,8 @@ if __name__ == "__main__":
     torch.backends.cudnn.deterministic = args.torch_deterministic
 
     device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
-    
-    envs = gym.vector.SyncVectorEnv( # AsyncVectorEnv( SyncVectorEnv
+
+    envs = gym.vector.AsyncVectorEnv( # AsyncVectorEnv( SyncVectorEnv
         [make_env(args.env_id, args.seed + i) for i in range(args.num_envs)]
     )
     assert isinstance(envs.single_action_space, gym.spaces.Box), "only continuous action space is supported"
@@ -194,7 +138,6 @@ if __name__ == "__main__":
             logprobs[step] = logprob
 
             # TRY NOT TO MODIFY: execute the game and log data.
-            print(next_obs)
             next_obs, reward, done, trun, info = envs.step(action.cpu().numpy()*2-1)
 
             rewards[step] = torch.tensor(reward).to(device).view(-1)
@@ -204,7 +147,7 @@ if __name__ == "__main__":
                 for item in info:
                     if item == "episode":
                         rewards_ = info['episode']['r']
-                        print(f"global_step={global_step}, episodic_return={rewards_[rewards_!=0]}, time={time.time()-start_time}")
+                        print(f"global_step={global_step}, episodic_return={np.round(rewards_[rewards_!=0], 2)}, time={time.time()-start_time}")
                         start_time = time.time()
                         break
 
@@ -246,6 +189,57 @@ if __name__ == "__main__":
 
         # Optimizing the policy and value network
         print('start training')
-        agent = ppo_train(args, agent)
+        b_inds = np.arange(args.batch_size)
+        clipfracs = []
+        for epoch in range(args.update_epochs):
+            np.random.shuffle(b_inds)
+            for start in range(0, args.batch_size, args.minibatch_size):
+                end = start + args.minibatch_size
+                mb_inds = b_inds[start:end]
+
+                _, newlogprob, entropy, newvalue = agent.get_action_and_value(b_obs[mb_inds], b_actions[mb_inds])
+                logratio = newlogprob - b_logprobs[mb_inds]
+                ratio = logratio.exp()
+
+                with torch.no_grad():
+                    # calculate approx_kl http://joschu.net/blog/kl-approx.html
+                    old_approx_kl = (-logratio).mean()
+                    approx_kl = ((ratio - 1) - logratio).mean()
+                    clipfracs += [((ratio - 1.0).abs() > args.clip_coef).float().mean().item()]
+
+                mb_advantages = b_advantages[mb_inds]
+                if args.norm_adv:
+                    mb_advantages = (mb_advantages - mb_advantages.mean()) / (mb_advantages.std() + 1e-8)
+
+                # Policy loss
+                pg_loss1 = -mb_advantages * ratio
+                pg_loss2 = -mb_advantages * torch.clamp(ratio, 1 - args.clip_coef, 1 + args.clip_coef)
+                pg_loss = torch.max(pg_loss1, pg_loss2).mean()
+
+                # Value loss
+                newvalue = newvalue.view(-1)
+                if args.clip_vloss:
+                    v_loss_unclipped = (newvalue - b_returns[mb_inds]) ** 2
+                    v_clipped = b_values[mb_inds] + torch.clamp(
+                        newvalue - b_values[mb_inds],
+                        -args.clip_coef,
+                        args.clip_coef,
+                    )
+                    v_loss_clipped = (v_clipped - b_returns[mb_inds]) ** 2
+                    v_loss_max = torch.max(v_loss_unclipped, v_loss_clipped)
+                    v_loss = 0.5 * v_loss_max.mean()
+                else:
+                    v_loss = 0.5 * ((newvalue - b_returns[mb_inds]) ** 2).mean()
+
+                entropy_loss = entropy.mean()
+                loss = pg_loss - args.ent_coef * entropy_loss + v_loss * args.vf_coef
+
+                optimizer.zero_grad()
+                loss.backward()
+                nn.utils.clip_grad_norm_(agent.parameters(), args.max_grad_norm)
+                optimizer.step()
+
+            if args.target_kl is not None:
+                if approx_kl > args.target_kl: break
         
     envs.close()

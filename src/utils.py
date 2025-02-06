@@ -203,6 +203,8 @@ def inflation(log:dict[dict]):
     通胀率 = 本年均价 - 上年均价 / 上年均价
     '''
     price_history = [log[key]['price'] for key in log.keys()]
+    price_history = [p if isinstance(p, float) else p[0] for p in price_history ]
+    
     assert len(price_history) >= 12
     if len(price_history) < 12*2:
         return (np.mean(price_history[-12:]) - price_history[-12]) / price_history[-12]

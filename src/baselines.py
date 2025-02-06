@@ -3,8 +3,8 @@ baseline control algorithms
 '''
 
 # PPO Proximal Policy Optimization
-from stable_baselines3.ppo import PPO
-PPO_model = PPO('MlpPolicy', 'CartPole-v1', verbose=1)
+# from stable_baselines3.ppo import PPO
+# PPO_model = PPO('MlpPolicy', 'CartPole-v1', verbose=1)
 
 import sys
 import os
@@ -13,7 +13,7 @@ parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir)) # 获取上�
 sys.path.append(parent_dir) # 将上级目录添加到 sys.path
 
 
-import gym
+import gymnasium as gym
 from copy import deepcopy
 from src.step_simulation import step_simulation
 from config import Configuration, EconomicCrisisConfig, ReconstructionConfig, EconomicProsperityConfig
@@ -22,56 +22,92 @@ from src.firm import firm
 from src.bank import bank
 from src.utils import init_agents, gini_coefficient
 import numpy as np
+from gymnasium.utils import seeding
 
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
 
-def reward_func(event:int, log:dict):
+def reward_func(event:int, log:dict) -> float:
     '''
     reward function for three events
     '''
+    last_timestep = max(log.keys()) # get the last timestep
     if event == 1:
+        # r_gdp = np.log(log[last_timestep]['GDP']) - np.log(prev_state['GDP'])
+        r_gini = (1 - log[last_timestep]['gini']) ** 3 # penalty for high gini coefficient
+        r_unem = 1/(1 + np.exp(5*(log[last_timestep]['unemployment_rate'] - 0.05)))  # 失业率超5%时快速衰减
         
+        production_history = [log[t]['production'] for t in range(last_timestep-12, last_timestep)]
+        capacity_ratio = log[last_timestep]['production'] / (np.mean(production_history) * 1.1)
+        r_prod = np.tanh(capacity_ratio - 1)  # 鼓励扩张产能，但超过历史均值10%时饱和
 
+        deposit_std = np.std(log[last_timestep]['wage'])
+        deposit_fairness = np.log(1 + log[last_timestep]['avg_wage']) - 0.2 * deposit_std
+        r_deposit = 1/(1 + np.exp(-deposit_fairness))  # 鼓励存款公平
+        
+        # 当基尼系数超过0.4时增强公平权重
+        beta = 1.0 + 2.0 * sigmoid(10*(log[last_timestep]['gini'] - 0.4))
 
-class MEABM_gym(gym.env):
+        # 当失业率超过自然失业率时提升生产权重
+        alpha = 1.0 + 1.5 * (log[last_timestep]['unemployment_rate'] > 0.3)
+
+        reward = alpha * (0.5 * r_unem + 0.5 * r_prod) + beta * (0.5 * r_gini + 0.5 * r_deposit)
+        return reward
+    else:
+        raise ValueError("Invalid event")
+from gym.envs.box2d.lunar_lander import LunarLanderContinuous
+
+class MEABM_gym(gym.Env):
     metadata = {'render_modes': ['human', 'rgb_array'], 'render_fps': 4}
-    def __init__(self, event: int):
+    def __init__(self, event: int, step_len: int=50):
         super(MEABM_gym, self).__init__()
-        self.action_space = gym.spaces.Discrete(2)
-        self.observation_space = gym.spaces.Box(low=-np.inf, high=10, shape=(8,))
+        self.action_space = gym.spaces.Box(0, 0.5, (1,), dtype=np.float32)
+        self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=(9,), dtype=np.float32)
         self.timestep = None
         self.event = event
+        self.step_len = step_len
+        self.log = None
         
         
 
-    def step(self, action, log):
+    def step(self, action):
         '''
         action: []
         '''
+
+        action = np.clip(action, 0, 0.5)
         self.F, self.B, self.agents, log = step_simulation(
             self.config, 
             event=self.event, 
             intervention=True, 
+            action=action,
             step=self.timestep, 
-            length=20, 
-            firm=deepcopy(self.F), bank=deepcopy(self.B), agents=deepcopy(self.agents), log=deepcopy(log))
-        self.timestep += 20
+            length=self.step_len, 
+            firm=deepcopy(self.F), bank=deepcopy(self.B), agents=deepcopy(self.agents), log=deepcopy(self.log))
+        self.log = deepcopy(log)
+        # print('hhhhhhhhhhhhhh:', self.log[list(self.log.keys())[-1]]['price'])
+        self.timestep += self.step_len
         obs = [
             self.F.P, 
             self.B.rate, 
             self.F.G, 
-            0., 
-            0.,
+            self.log[list(self.log)[-1]]['imbalance'],
+            self.log[list(self.log)[-1]]['inflation_rate'],
             1-sum([a.l for a in self.agents])/self.config.num_agents,
             sum([a.w for a in self.agents])/self.config.num_agents,
+            self.log[list(self.log)[-1]]['GDP'],
             gini_coefficient([a.w for a in self.agents]),
             ]
         
-        reward = 
+        reward = reward_func(self.event, self.log)
         terminated = True if self.timestep == 600 else False
-        return obs, reward, terminated, None, log
+        return obs, reward, terminated, False, self.log
 
-    def reset(self):
-        
+    def reset(self, seed=None, options=None):
+        super().reset(seed=seed)
+        # if seed is not None:
+        #     self._np_random, self._np_random_seed = seeding.np_random(seed)
+            
         self.timestep = 0
         if self.event == 0:    self.config = Configuration()
         elif self.event == 1:  self.config = EconomicCrisisConfig()
@@ -102,7 +138,7 @@ class MEABM_gym(gym.env):
         
         self.F.P = np.mean([a.w*a.pc for a in self.agents])*5 # t=0 initial price
 
-        log = {
+        self.log = {
             0:{
                 'year': 0,
                 'work_state': [a.l for a in self.agents], 
@@ -131,7 +167,20 @@ class MEABM_gym(gym.env):
             self.F.G, 
             0., 
             0.,
-            1-sum([a.l for a in self.agents])/self.config.num_agents,
-            sum([a.w for a in self.agents])/self.config.num_agents,
+            1-sum([a.l for a in self.agents])/self.config.num_agents,  # unemployment rate
+            sum([a.w for a in self.agents])/self.config.num_agents,    # avg wage
+            0., # GDP
             gini_coefficient([a.w for a in self.agents]),
-            ], log
+            ], self.log
+
+
+if __name__ == '__main__':
+    env = MEABM_gym(event=1, step_len=50)
+    obs, info = env.reset()
+    print(obs)
+    
+    for i in range(30):
+        obs, reward, terminated, truncated, info = env.step(0.2)
+        print(i, reward, terminated, 'log len:', len(env.log))
+        if terminated:
+            break
