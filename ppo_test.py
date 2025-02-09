@@ -16,7 +16,7 @@ class Args:
 
     total_timesteps = 1000000
     learning_rate = 3e-4
-    num_envs = 4 # the number of parallel game environments
+    num_envs = 1 # the number of parallel game environments
     num_steps = 500 # the number of steps to run in each environment per policy rollout
     anneal_lr = True
     gae = True
