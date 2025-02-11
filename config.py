@@ -55,7 +55,7 @@ class Configuration:
         self.pw_low = 0.6 # 0.2 # 0.60     # 就业意愿下限
         self.pw_high = 1.0 # 0.4 # 1.0     # 就业意愿上限
         self.pc_low = 0.1 # 0.4 # 0.1
-        self.pc_high = 0.5 # 0.8 # 0.4
+        self.pc_high = 0.3 # 0.8 # 0.4
         
         self.pw_delta = 0.03
         self.pc_delta = 0.01

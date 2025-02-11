@@ -1,9 +1,12 @@
 import numpy as np
 from config import Configuration
-from src.agent import agent, gauss_dist
+from src.agent import agent
 import cv2
 import matplotlib.pyplot as plt
 import base64
+
+def gauss_dist(mean_income, std_dev_income, num_samples=100, rng: np.random.Generator=None):
+    return rng.normal(mean_income, std_dev_income, num_samples)
 
 def generate_unique_pairs(M, num_pairs) -> list[tuple[int, int]]:
     """
@@ -152,18 +155,20 @@ def split_img(img_path:str):
     # plt.show()
     return [price_fig, interest_rate_fig, employment_fig, inflation_fig, gini_fig, imbalance_fig, capital_fig, production_fig, gdp_fig, avg_deposit_fig, avg_wage_fig, avg_tax_fig, std_wage_fig]
 
-def init_agents(config:Configuration) -> list[agent]:
+def init_agents(config:Configuration, rng:np.random.Generator) -> list[agent]:
     agent_list = [
         agent(id=i, 
-                  pw=np.random.uniform(config.pw_low, config.pw_high), 
-                  pc=np.random.uniform(config.pc_low, config.pc_high), 
-                  gamma=config.gamma, 
-                  beta=config.gamma,
-                  pw_delta=config.pw_delta,
-                  pc_delta=config.pc_delta,
-                  A=np.random.randn()*0.2 + 1.0,
+                pw=rng.uniform(config.pw_low, config.pw_high), 
+                pc=rng.uniform(config.pc_low, config.pc_high), 
+                gamma=config.gamma, 
+                beta=config.gamma,
+                pw_delta=config.pw_delta,
+                pc_delta=config.pc_delta,
+                A=rng.normal() + 10,
+            
+                rng=rng,
                   ) for i in range(config.num_agents)]
-    wages = gauss_dist(config.wage_mean, config.wage_std, config.num_agents)
+    wages = gauss_dist(config.wage_mean, config.wage_std, config.num_agents, rng)
     for a, w in zip(agent_list, wages):
         a.w = w
     return agent_list
@@ -203,12 +208,13 @@ def inflation(log:dict[dict]):
     通胀率 = 本年均价 - 上年均价 / 上年均价
     '''
     price_history = [log[key]['price'] for key in log.keys()]
-    price_history = [p if isinstance(p, float) else p[0] for p in price_history ]
+    # price_history = [p if isinstance(p, float) else p[0] for p in price_history ]
     
     assert len(price_history) >= 12
     if len(price_history) < 12*2:
         return (np.mean(price_history[-12:]) - price_history[-12]) / price_history[-12]
     else:
+        # print(price_history)
         return (np.mean(price_history[-12:]) - np.mean(price_history[-12*2:-12])) / np.mean(price_history[-12*2:-12])
 
 def GDP(log:dict):
@@ -244,7 +250,6 @@ def imbalance(agent_list:list[agent], P:float, G:float, deposits:dict) -> float:
     <0, 需求 < 产量
     '''
     D = total_intended_demand(agent_list, P, deposits)
-    # print('imbalance:', D, firm.G)
     phi_bar = (D - G) / max(D, G)
     return phi_bar
 
@@ -488,45 +493,55 @@ def plot_bar(img_name:str, logs:list[dict], logs_compare:list[dict], config:Conf
     plt.tight_layout()
     plt.savefig(img_name) # , dpi=300
 
-def plot_log(img_name:str, log:dict, config:Configuration):
-    fig, axs = plt.subplots(3, 5, figsize=(30, 16))
-    # fig.suptitle('xxx')
-    for i in range(3):
-        for j in range(5):
-            axs[i, j].set_xlabel('Time / Month'); axs[i, j].grid()
-            axs[i, j].axvline(x=config.event_start, color='r', linestyle='--')
-            axs[i, j].axvline(x=config.event_end, color='r', linestyle='--')
-            axs[i, j].set_xlim(-20, config.num_time_steps+20)
-    
-    price_history = [log[key]['price'] for key in log.keys()]
-    rate_history = [log[key]['rate'] for key in log.keys()]
-    um_rate_history = [1-log[key]['unemployment_rate'] for key in log.keys()]
-    inflation_history = [log[key]['inflation_rate'] for key in log.keys()]
-    gini_history = [log[key]['gini'] for key in log.keys()]
-    imba_history = [log[key]['imbalance'] for key in log.keys()]
-    capital_history = [log[key]['capital'] for key in log.keys()]
-    production_history = [log[key]['production'] for key in log.keys()]
-    GDP_history = [log[key]['GDP'] for key in log.keys()]
-    deposit_history = [total_deposit(log[key]['deposit'])/config.num_agents for key in log.keys()]
-    wage_history = [log[key]['avg_wage'] for key in log.keys()]
-    taxes_history = [log[key]['taxes']/config.num_agents for key in log.keys()]
-    wage_std_history = [np.std(log[key]['wage']) for key in log.keys()]
-    axs[0, 0].plot(price_history);      axs[0, 0].set_ylabel('Price', fontsize=14)
-    axs[0, 1].plot(rate_history);       axs[0, 1].set_ylabel('Interest rate', fontsize=14)
-    axs[0, 2].plot(um_rate_history);    axs[0, 2].set_ylabel('Employment rate', fontsize=14)
-    axs[0, 3].plot(inflation_history);  axs[0, 3].set_ylabel('Inflation rate', fontsize=14)
-    axs[0, 4].plot(gini_history);       axs[0, 4].set_ylabel('Gini coefficient', fontsize=14)
-    axs[1, 0].plot(imba_history);       axs[1, 0].set_ylabel('Imbalance: Demand - Supply', fontsize=14)
-    axs[1, 1].plot(capital_history);    axs[1, 1].set_ylabel('Capital', fontsize=14)
-    axs[1, 2].plot(production_history); axs[1, 2].set_ylabel('Production', fontsize=14)
-    axs[1, 3].plot(GDP_history);        axs[1, 3].set_ylabel('Nominal GDP', fontsize=14)
-    axs[2, 0].plot(deposit_history);    axs[2, 0].set_ylabel('Deposit per capita', fontsize=14)
-    axs[2, 1].plot(wage_history);       axs[2, 1].set_ylabel('Avg wage', fontsize=14)
-    axs[2, 2].plot(taxes_history);      axs[2, 2].set_ylabel('Avg tax revenue per capita', fontsize=14)
-    axs[2, 3].plot(wage_std_history);   axs[2, 3].set_ylabel('Wage std', fontsize=14)
-    plt.tight_layout()
-    plt.savefig(img_name, dpi=300)
-    # plt.show()
+def plot_log(img_name:str, log:dict, config:Configuration, save:bool=False, show:bool=False):
+    '''
+    画一个log的图，即一次实验的结果
+    '''
+    with plt.ioff():
+        fig, axs = plt.subplots(3, 5, figsize=(30, 16))
+        # fig.suptitle('xxx')
+        for i in range(3):
+            for j in range(5):
+                axs[i, j].set_xlabel('Time / Month'); axs[i, j].grid()
+                axs[i, j].axvline(x=config.event_start, color='r', linestyle='--')
+                axs[i, j].axvline(x=config.event_end, color='r', linestyle='--')
+                axs[i, j].set_xlim(-20, config.num_time_steps+20)
+        
+        price_history = [log[key]['price'] for key in log.keys()]
+        rate_history = [log[key]['rate'] for key in log.keys()]
+        um_rate_history = [1-log[key]['unemployment_rate'] for key in log.keys()]
+        inflation_history = [log[key]['inflation_rate'] for key in log.keys()]
+        gini_history = [log[key]['gini'] for key in log.keys()]
+        imba_history = [log[key]['imbalance'] for key in log.keys()]
+        capital_history = [log[key]['capital'] for key in log.keys()]
+        production_history = [log[key]['production'] for key in log.keys()]
+        GDP_history = [log[key]['GDP'] for key in log.keys()]
+        avg_pw_history = [np.mean(log[key]['pw']) for key in log.keys()]
+        deposit_history = [total_deposit(log[key]['deposit'])/config.num_agents for key in log.keys()]
+        wage_history = [log[key]['avg_wage'] for key in log.keys()]
+        taxes_history = [log[key]['taxes']/config.num_agents for key in log.keys()]
+        wage_std_history = [np.std(log[key]['wage']) for key in log.keys()]
+        inventory_history = [log[key]['inventory'] for key in log.keys()]
+        axs[0, 0].plot(price_history);      axs[0, 0].set_ylabel('Price', fontsize=14)
+        axs[0, 1].plot(rate_history);       axs[0, 1].set_ylabel('Interest rate', fontsize=14)
+        axs[0, 2].plot(um_rate_history);    axs[0, 2].set_ylabel('Employment rate', fontsize=14)
+        axs[0, 3].plot(inflation_history);  axs[0, 3].set_ylabel('Inflation rate', fontsize=14)
+        axs[0, 4].plot(gini_history);       axs[0, 4].set_ylabel('Gini coefficient', fontsize=14)
+        axs[1, 0].plot(imba_history);       axs[1, 0].set_ylabel('Imbalance: Demand - Supply', fontsize=14)
+        axs[1, 1].plot(capital_history);    axs[1, 1].set_ylabel('Capital', fontsize=14)
+        axs[1, 2].plot(production_history); axs[1, 2].set_ylabel('Production', fontsize=14)
+        axs[1, 3].plot(GDP_history);        axs[1, 3].set_ylabel('Nominal GDP', fontsize=14)
+        axs[1, 4].plot(avg_pw_history);     axs[1, 4].set_ylabel('Avg pw', fontsize=14)
+        axs[2, 0].plot(deposit_history);    axs[2, 0].set_ylabel('Deposit per capita', fontsize=14)
+        axs[2, 1].plot(wage_history);       axs[2, 1].set_ylabel('Avg wage', fontsize=14)
+        axs[2, 2].plot(taxes_history);      axs[2, 2].set_ylabel('Avg tax revenue per capita', fontsize=14)
+        axs[2, 3].plot(wage_std_history);   axs[2, 3].set_ylabel('Wage std', fontsize=14)
+        axs[2, 4].plot(inventory_history);  axs[2, 4].set_ylabel('inventory', fontsize=14)
+        plt.tight_layout()
+        if save: plt.savefig(img_name, dpi=300)
+        if show: plt.show()
+        plt.close(fig)
+    return fig, axs
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt

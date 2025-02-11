@@ -33,7 +33,7 @@ class bank:
         '''
         for a in agent_list:
             self.assets -= self.deposits[a.id] * self.rate
-            self.deposits[a.id] *= (1 + self.rate)
+            self.deposits[a.id] = self.deposits[a.id] * (1 + self.rate)
     
     def deposit(self, agent_id, income:float):
         '''
@@ -44,7 +44,7 @@ class bank:
             self.deposits[agent_id] += income
         else:
             self.deposits[agent_id] = income
-        # print('after:', agent_id, self.deposits[agent_id])
+        # print('after:', agent_id, income, type(self.deposits[agent_id]), self.deposits[agent_id])
     
     def rate_adjustment(self, unemployment_rate:float, inflation_rate:float):
         '''

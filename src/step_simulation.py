@@ -154,6 +154,7 @@ def step_simulation(
         
         for a, w in zip(agents, wages_after_tax):
             a.z = w # update monthly income
+            # print('before: ', w + sum(taxes)/config.num_agents)
             bank.deposit(a.id, w + sum(taxes)/config.num_agents) # 再分配
             
             ########################## 干 预 开 始 ##########################
@@ -164,18 +165,19 @@ def step_simulation(
             ########################## 干 预 结 束 ##########################
         
         ########################## 干 预 开 始 ##########################
-        # if t >= config.intervent_start and t <= config.intervent_end and intervention:
-        #     bank.natural_rate = max(bank.natural_rate * 1.002, 0.1)
-        if intervention:
-            bank.rate = action
+        if t >= config.intervent_start and t <= config.intervent_end and intervention:
+            bank.natural_rate = max(bank.natural_rate * 1.002, 0.1)
+        # if intervention:
+        #     bank.rate = float(action)
         ########################## 干 预 结 束 ##########################
         
-        if t % 3 == 0: imba = imbalance(agents, firm.P, firm.G, bank.deposits)
+        if t % 3 == 0:
+            imba = imbalance(agents, firm.P, firm.G, bank.deposits)
         
         ################################################
         # consumption in random order 随 机 顺 序 消 费 #
         ################################################
-        total_money, total_quantity, deposits = consumption(config, agents, firm.G, firm.P, deepcopy(bank.deposits))
+        total_money, total_quantity, deposits = consumption(config, agents, firm.G, firm.P, deepcopy(bank.deposits), firm.rng)
         firm.capital += total_money * (1-config.tax_rate_good)
         # print(t, total_money, total_money*config.tax_rate_good)
         
@@ -201,7 +203,7 @@ def step_simulation(
             infla_rate = inflation(log)
             bank.rate_adjustment(unem_rate, infla_rate) 
             Nominal_GDP = GDP(log)
-        
+        print('G:', firm.G)
         log[t] = {
             'year': t // 12.1 + 1,
             'work_state': work_state, 
@@ -210,13 +212,14 @@ def step_simulation(
             'pc': [a.pc for a in agents],
             'price': firm.P, 
             'rate': bank.rate, 
+            'inventory': firm.G,
             'production': production,
             'imbalance':imba,
             'inflation_rate': infla_rate,
             'taxes': sum(taxes),
-            'unemployment_rate': unem_rate,
+            'unemployment_rate': 1-sum([a.l for a in agents])/config.num_agents,
             'deposit': deepcopy(bank.deposits),
-            'avg_wage': sum([a.w for a in agents])/sum([1 if a.l else 0 for a in agents]),
+            'avg_wage': sum([a.w for a in agents])/sum([1 if a.l else 0 for a in agents]) if sum([1 if a.l else 0 for a in agents]) else 0.0,
             'GDP': Nominal_GDP,
             'capital': firm.capital,
             'assets': bank.assets,
@@ -234,16 +237,16 @@ def step_simulation(
         #   ..@@. .@...@@..@.  .@.  .@@. .@.  @@. .@@. . .@...@...@@   .@..@@.  . .@.         @@.         
         #   .@@.   ..@@@. .@@..@@. .@@.  .@.  .@@. .@@.  .@. .@...@@.@@@@@@@@.  . .@@@@@@@@@@@@@.
         
-        unique_pairs = generate_unique_pairs(config.num_agents, config.communications_num) # 总可能数(M-2)(M+1)/2≈5000
-        for pair in unique_pairs:
-            # print('before:', agents[pair[0]].pw, agents[pair[1]].pw)
-            update_flag = Deffuant_Weisbuch(agents[pair[0]], agents[pair[1]], 'w', config.bounded_conf, config.opinion_fusion_factor)
-            # if update_flag: print('after:', agents[pair[0]].pw, agents[pair[1]].pw, '\n')
+        # unique_pairs = generate_unique_pairs(config.num_agents, config.communications_num) # 总可能数(M-2)(M+1)/2≈5000
+        # for pair in unique_pairs:
+        #     # print('beforeDeffuant_Weisbuch:', agents[pair[0]].pw, agents[pair[1]].pw)
+        #     update_flag = (agents[pair[0]], agents[pair[1]], 'w', config.bounded_conf, config.opinion_fusion_factor)
+        #     # if update_flag: print('after:', agents[pair[0]].pw, agents[pair[1]].pw, '\n')
 
         if t % 6 == 0 and t > 30:
             for a in agents: a.adjust(t, log)
             
-    print('finish at timestep: ', t)
+    # print('finish at timestep: ', t)
     return firm, bank, agents, log
 
 if __name__ == '__main__':
@@ -286,7 +289,8 @@ if __name__ == '__main__':
                 'wage': [a.w for a in agents0],
                 'price': F0.P, 
                 'rate': B0.rate, 
-                'production': F0.G,
+                'inventory': F0.G,
+                'production': 0.,
                 'imbalance': 0.,
                 'inflation_rate': 0.,
                 'taxes': 0,

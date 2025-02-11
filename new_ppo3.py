@@ -7,18 +7,20 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.distributions import Beta
 import matplotlib.pyplot as plt
+from src.baselines import MEABM_gym
+
 
 class Args:
     exp_name = os.path.basename(__file__).rstrip(".py")  # 实验名称（当前文件名）
     seed = 123
     torch_deterministic = True
     cuda = True
-    env_id = "BipedalWalker-v3" # 'Ant-v5' # 'InvertedPendulum-v5' # "HalfCheetah-v5"  # 'BipedalWalker-v3' # "LunarLanderContinuous-v3" # 
+    env_id = "MEABM" # 
     total_episodes = 10000  # 总共训练回合数
     learning_rate = 3e-4
     num_envs = 1    # 这里只使用1个环境
-    num_steps = 1024  # 每个episode最大rollout步数（当episode未提前结束时，rollout的数据条数即为num_steps）
-    max_epi_len = 500  # 最大episode长度（超过此长度则视为episode结束）
+    num_steps = 200  # 更新步数
+    max_epi_len = 20  # 最大episode的rollout长度（超过此长度则视为episode结束）
     anneal_lr = True
     gae = True
     gae_lambda = 0.9 # 0.95
@@ -43,7 +45,6 @@ def make_env(env_id, seed):
         env = gym.wrappers.ClipAction(env)
         env = gym.wrappers.NormalizeObservation(env)
         env = gym.wrappers.TransformObservation(env, lambda obs: np.clip(obs, -10, 10), None)
-        # 可选：对奖励归一化和裁剪（此处未使用）
         env.reset(seed=seed)
         env.action_space.seed(seed)
         env.observation_space.seed(seed)
@@ -51,8 +52,8 @@ def make_env(env_id, seed):
     return thunk
 
 def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
-    torch.nn.init.orthogonal_(layer.weight, std)  # 正交初始化权重
-    torch.nn.init.constant_(layer.bias, bias_const)  # 常数初始化偏置
+    torch.nn.init.orthogonal_(layer.weight, std)
+    torch.nn.init.constant_(layer.bias, bias_const)
     return layer
 
 class Agent(nn.Module):
@@ -99,7 +100,8 @@ if __name__ == "__main__":
 
     device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
 
-    env = make_env(args.env_id, args.seed)()
+    env = MEABM_gym(event=1, step_len=50)
+    # env = make_env(args.env_id, args.seed)()
     assert isinstance(env.action_space, gym.spaces.Box), "only continuous action space is supported"
     agent = Agent(env).to(device)
     optimizer = optim.Adam(agent.parameters(), lr=args.learning_rate, eps=1e-5)
@@ -117,14 +119,11 @@ if __name__ == "__main__":
     for episode in range(1, args.total_episodes + 1):
         obs, actions, logprobs, rewards, dones, values = [], [], [], [], [], []
 
-
-        # 每个episode开始前reset环境，获取初始观察
         next_obs, info = env.reset(seed=args.seed + episode)
         next_obs = torch.tensor(next_obs, dtype=torch.float32).to(device)  # shape与env.observation_space一致
         next_done = torch.tensor(0.0).to(device)  # 初始化done标志为0
 
         epi_reward = 0  # 累计本回合奖励
-        # 每个episode至多展开args.num_steps步
         for step in range(args.max_epi_len):
             global_step += 1  # 更新全局步数
             
@@ -141,7 +140,9 @@ if __name__ == "__main__":
 
             # 执行动作。注意：若需要映射动作范围，可在此处调整，例如action_np = action.squeeze(0).cpu().numpy() * 2 - 1
             action_np = action.squeeze(0).cpu().numpy() * 2 - 1 
-            next_obs_, reward, done, trun, info = env.step(action_np)
+            
+            next_obs_, reward, done, trun, info = env.step(action_np[0])
+            # next_obs_ = [p if np.isscalar(p) else p[0] for p in next_obs_]
             epi_reward += reward
 
             rewards.append(torch.tensor(reward, dtype=torch.float32).to(device))
