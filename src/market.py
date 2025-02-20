@@ -26,3 +26,30 @@ def consumption(config:Configuration, agents:list[agent], good_quantity:float, p
         total_consume_money += money_actual
 
     return total_consume_money, total_consume_quantity, deposits
+
+def taxation(wages:list[float]):
+    '''
+    阶梯税率
+    '''
+    brackets = [0, 9700/120, 39475/120, 84200/120, 160725/120, 204100/120, 510300/120] # monthly income brackets
+    rates =    [  0.1,   0.12,    0.22,      0.24,      0.32,      0.35,       0.37] # tax rates
+    
+    taxes = []
+    for w in wages:
+        if w <= 0: 
+            taxes.append(0.)
+            continue
+        
+        tax = 0.0
+        for i in range(len(brackets) - 1):
+            if w > brackets[i + 1]:
+                tax += (brackets[i + 1] - brackets[i]) * rates[i]
+            else:
+                tax += (w - brackets[i]) * rates[i]
+                break
+        if w > brackets[-1]:
+            tax += (w - brackets[-1]) * rates[-1]
+        taxes.append(tax)
+    
+    wages_after_tax = [w - t for w, t in zip(wages, taxes)]
+    return taxes, wages_after_tax

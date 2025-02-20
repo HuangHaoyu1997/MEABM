@@ -4,8 +4,8 @@ from copy import deepcopy
 import numpy as np
 from src.firm import firm
 from src.bank import bank
-from src.utils import taxation, inflation, GDP, unemployment, init_agents, imbalance, gini_coefficient
-from src.market import consumption
+from src.utils import inflation, GDP, unemployment, init_agents, imbalance, gini_coefficient
+from src.market import consumption, taxation
 
 
 def simulation(config:Configuration|EconomicCrisisConfig, intervention=False, rate_change=False):

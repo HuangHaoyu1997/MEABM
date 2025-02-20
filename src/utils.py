@@ -1,7 +1,7 @@
 import numpy as np
 from config import Configuration
 from src.agent import agent
-import cv2
+
 import matplotlib.pyplot as plt
 import base64
 
@@ -131,7 +131,7 @@ def gini_coefficient(income_list:list[float]) -> float:
 
 
 def split_img(img_path:str):
-    
+    import cv2
     img = cv2.imread(img_path)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     
@@ -173,32 +173,6 @@ def init_agents(config:Configuration, rng:np.random.Generator) -> list[agent]:
         a.w = w
     return agent_list
 
-def taxation(wages:list[float]):
-    '''
-    阶梯税率
-    '''
-    brackets = [0, 9700/12, 39475/12, 84200/12, 160725/12, 204100/12, 510300/12] # monthly income brackets
-    rates = [0.1, 0.12, 0.22, 0.24, 0.32, 0.35, 0.37] # tax rates
-    
-    taxes = []
-    for w in wages:
-        if w <= 0: 
-            taxes.append(0.)
-            continue
-        
-        tax = 0.0
-        for i in range(len(brackets) - 1):
-            if w > brackets[i + 1]:
-                tax += (brackets[i + 1] - brackets[i]) * rates[i]
-            else:
-                tax += (w - brackets[i]) * rates[i]
-                break
-        if w > brackets[-1]:
-            tax += (w - brackets[-1]) * rates[-1]
-        taxes.append(tax)
-    
-    wages_after_tax = [w - t for w, t in zip(wages, taxes)]
-    return taxes, wages_after_tax
 
 def total_deposit(deposits:dict):
     return sum([deposits[id] for id in deposits.keys()])

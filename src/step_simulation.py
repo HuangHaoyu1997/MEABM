@@ -11,12 +11,12 @@ from config import Configuration, EconomicCrisisConfig, ReconstructionConfig, Ec
 from src.agent import agent
 from src.firm import firm
 from src.bank import bank   
-from src.market import consumption
-from src.utils import taxation, inflation, GDP, unemployment, init_agents, imbalance, gini_coefficient, generate_unique_pairs
+from src.market import consumption, taxation
+from src.utils import inflation, GDP, unemployment, init_agents, imbalance, gini_coefficient, generate_unique_pairs
 from src.opinion_dynamics import Deffuant_Weisbuch
 
 def step_simulation(
-        config:Configuration, 
+        config:Configuration|EconomicCrisisConfig|ReconstructionConfig|EconomicProsperityConfig, 
         event:int, 
         intervention:bool, 
         action: float,
@@ -97,7 +97,7 @@ def step_simulation(
             if t > config.event_start and t <= config.event_end:
                 # print(t, log.keys())
                 for a, pw in zip(agents, log[config.event_start]['pw']):
-                    a.pw = (0.75 ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * pw # 在t=900时，就业意愿下降到t=500时的25%
+                    a.pw = (config.decay_rate ** (1/(config.event_end-config.event_start))) ** (t-config.event_start) * pw # 在t=900时，就业意愿下降到t=500时的25%
             work_state = [a.work_decision() for a in agents] # work decision
 
 
@@ -165,10 +165,10 @@ def step_simulation(
             ########################## 干 预 结 束 ##########################
         
         ########################## 干 预 开 始 ##########################
-        if t >= config.intervent_start and t <= config.intervent_end and intervention:
-            bank.natural_rate = max(bank.natural_rate * 1.002, 0.1)
-        # if intervention:
-        #     bank.rate = float(action)
+        # if t >= config.intervent_start and t <= config.intervent_end and intervention:
+        #     bank.natural_rate = max(bank.natural_rate * 1.002, 0.1)
+        if intervention:
+            bank.rate = float(action)
         ########################## 干 预 结 束 ##########################
         
         if t % 3 == 0:
@@ -201,9 +201,9 @@ def step_simulation(
             bank.interest(agents)                # interest payment
             unem_rate = unemployment(log)
             infla_rate = inflation(log)
-            bank.rate_adjustment(unem_rate, infla_rate) 
+            # bank.rate_adjustment(unem_rate, infla_rate) 
             Nominal_GDP = GDP(log)
-        print('G:', firm.G)
+        
         log[t] = {
             'year': t // 12.1 + 1,
             'work_state': work_state, 

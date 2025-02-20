@@ -31,12 +31,25 @@ from gymnasium.utils import seeding
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
+def new_reward_func(event:int, log:dict, step_len:int) -> float:
+    '''
+    new reward function for three events
+    '''
+    last_timestep = max(log.keys())
+    
+    if event == 1:
+        # 工资基尼系数
+        wage_gini = np.mean([gini_coefficient(log[last_timestep]['wage']) for t in range(last_timestep-step_len, last_timestep)])
+        income_gini = np.mean([log[t]['gini'] for t in range(last_timestep-step_len, last_timestep)])
+        
+        return 0.5*(1-wage_gini) + 0.5*(1-income_gini)
+
 def reward_func(event:int, log:dict, step_len:int) -> float:
     '''
     reward function for three events
     '''
-    last_timestep = max(log.keys()) # get the last timestep
-    print(len(log), last_timestep, last_timestep-step_len)
+    last_timestep = max(log.keys())
+    
     if event == 1:
         # r_gdp = np.log(log[last_timestep]['GDP']) - np.log(prev_state['GDP'])
         mean_gini = np.mean([log[t]['gini'] for t in range(last_timestep-step_len, last_timestep)])
@@ -119,7 +132,7 @@ class MEABM_gym(gym.Env):
             np.mean([self.log[t]['gini'] for t in range(last_step-self.step_len, last_step)]), # gini
             ]
         
-        reward = reward_func(self.event, self.log, self.step_len)
+        reward = new_reward_func(self.event, self.log, self.step_len)
         terminated = True if self.timestep == 600 else False
         return obs, reward, terminated, False, self.log
 

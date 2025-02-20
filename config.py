@@ -10,6 +10,7 @@ class Configuration:
         self.event_end = 400
         self.intervent_start = 200
         self.intervent_end = 600
+        self.decay_rate = None
         
         #####################################
         ##           仿 真 参 数           ##
@@ -90,7 +91,8 @@ class EconomicCrisisConfig(Configuration):
         self.event_start = 200
         self.event_end = 400
         self.intervent_start = 200
-        self.intervent_end = 400    
+        self.intervent_end = 400
+        self.decay_rate = 0.5 # 就业意愿的衰减比例,相比于干预开始之初的就业意愿
         
         #####################################
         ##        企 业 模  型 参 数        ##
