@@ -32,7 +32,7 @@ def taxation(wages:list[float]):
     阶梯税率
     '''
     brackets = [0, 9700/120, 39475/120, 84200/120, 160725/120, 204100/120, 510300/120] # monthly income brackets
-    rates =    [  0.1,   0.12,    0.22,      0.24,      0.32,      0.35,       0.37] # tax rates
+    rates =    [  0.1,   0.12,       0.22,      0.24,      0.32,       0.35,        0.37] # tax rates
     
     taxes = []
     for w in wages:
