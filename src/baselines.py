@@ -31,6 +31,8 @@ from gymnasium.utils import seeding
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
+
+
 def new_reward_func(event:int, log:dict, step_len:int) -> float:
     '''
     new reward function for three events
@@ -40,6 +42,8 @@ def new_reward_func(event:int, log:dict, step_len:int) -> float:
     if event == 1:
         # 工资基尼系数
         wage_gini = np.mean([gini_coefficient(log[last_timestep]['wage']) for t in range(last_timestep-step_len, last_timestep)])
+        
+        # 储蓄基尼系数
         income_gini = np.mean([log[t]['gini'] for t in range(last_timestep-step_len, last_timestep)])
         
         return 0.5*(1-wage_gini) + 0.5*(1-income_gini)
